@@ -1,0 +1,46 @@
+name: plant_care_app
+description: App móvil Android para principiantes en el cuidado de plantas con gamificación.
+version: 0.1.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  firebase_storage: ^12.0.0
+
+  # Identificación de plantas (Plant.id vía REST)
+  dio: ^5.4.0
+
+  # Cámara y galería
+  camera: ^0.11.0
+  image_picker: ^1.1.0
+
+  # Notificaciones locales (recordatorios)
+  flutter_local_notifications: ^17.0.0
+
+  # Navegación
+  go_router: ^14.0.0
+
+  # Preferencias locales ligeras
+  shared_preferences: ^2.3.0
+
+  # UI base
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
