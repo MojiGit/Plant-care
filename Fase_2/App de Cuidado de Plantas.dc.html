@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo:wght@400&family=Figtree:wght@400;600;700&display=swap">
+<style>
+  body{margin:0}
+  @keyframes brote-float{0%{opacity:0;transform:translateY(6px) scale(0.9)}20%{opacity:1;transform:translateY(0) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-26px) scale(1)}}
+  @keyframes brote-spin{to{transform:rotate(360deg)}}
+  @keyframes brote-toast{0%{opacity:0;transform:translate(-50%,-10px)}12%{opacity:1;transform:translate(-50%,0)}88%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-10px)}}
+  @keyframes brote-pop{0%{transform:scale(0.6);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1)}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:#dcd3c4;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;font-family:'Figtree',system-ui,sans-serif;box-sizing:border-box;">
+<div style="width:412px;max-width:100%;height:896px;background:#f5ead8;border-radius:32px;box-shadow:0 12px 32px rgba(46,43,37,0.22);overflow:hidden;position:relative;display:flex;flex-direction:column;color:#201e1d;">
+
+  <!-- HOME -->
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;overflow-y:auto;padding:24px 20px 12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <div style="width:38px;height:38px;border-radius:50%;background:#eef2df;display:flex;align-items:center;justify-content:center;flex:none;">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#56633f" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+        </div>
+        <h1 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:22px;margin:0;flex:1;">Brote</h1>
+        <button type="button" onClick="{{ goProfile }}" style="display:flex;align-items:center;gap:6px;background:#ebddc5;border:none;border-radius:999px;padding:7px 12px;cursor:pointer;font-family:'Figtree',system-ui;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7a8a5e" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          <span style="font-size:12.5px;font-weight:700;">{{ points }}</span>
+        </button>
+      </div>
+
+      <div onClick="{{ goProfile }}" style="display:flex;align-items:center;gap:12px;background:#ebddc5;border-radius:20px;padding:14px 16px;margin-bottom:22px;cursor:pointer;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#eef2df;display:flex;align-items:center;justify-content:center;flex:none;">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#56633f" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14.5px;">{{ streak }} días de racha</div>
+          <div style="font-size:12px;opacity:0.65;">Multiplicador x{{ multiplier }} activo</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#201e1d" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4;"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
+        <h2 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:19px;margin:0;">Tu colección</h2>
+        <span style="font-size:12px;opacity:0.55;">{{ plantCount }} plantas</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding-bottom:96px;">
+        <sc-for list="{{ plants }}" as="plant" hint-placeholder-count="4">
+          <div onClick="{{ plant.open }}" style="background:#ebddc5;border-radius:20px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;">
+            <div style="aspect-ratio:1.2;background:#e9ddc3;display:flex;align-items:center;justify-content:center;">
+              <div style="width:58%;filter:{{ plant.pixelHue }};">
+                <svg viewBox="0 0 96 96" style="width:100%;height:auto;shape-rendering:crispEdges;">
+                  <rect x="40" y="0" width="16" height="8" fill="#6b7d4c"/><rect x="24" y="8" width="48" height="8" fill="#8fa06c"/><rect x="16" y="16" width="8" height="8" fill="#56633f"/><rect x="24" y="16" width="48" height="8" fill="#8fa06c"/><rect x="72" y="16" width="8" height="8" fill="#56633f"/><rect x="8" y="24" width="8" height="8" fill="#56633f"/><rect x="16" y="24" width="64" height="8" fill="#8fa06c"/><rect x="80" y="24" width="8" height="8" fill="#56633f"/><rect x="24" y="32" width="8" height="8" fill="#56633f"/><rect x="32" y="32" width="32" height="8" fill="#8fa06c"/><rect x="64" y="32" width="8" height="8" fill="#56633f"/><rect x="40" y="40" width="16" height="8" fill="#56633f"/><rect x="40" y="48" width="16" height="8" fill="#56633f"/><rect x="32" y="56" width="32" height="8" fill="#4a3423"/><rect x="24" y="64" width="48" height="8" fill="#96582f"/><rect x="32" y="72" width="32" height="8" fill="#c2793f"/><rect x="32" y="80" width="32" height="8" fill="#c2793f"/><rect x="24" y="88" width="48" height="8" fill="#96582f"/>
+                </svg>
+              </div>
+            </div>
+            <div style="padding:10px 12px 12px;display:flex;flex-direction:column;gap:5px;">
+              <div style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:14.5px;line-height:1.2;">{{ plant.name }}</div>
+              <div style="font-size:11px;font-style:italic;opacity:0.6;">{{ plant.species }}</div>
+              <sc-if value="{{ plant.isGood }}" hint-placeholder-val="{{ true }}">
+                <span style="display:inline-flex;width:fit-content;font-size:10px;padding:3px 9px;border-radius:12px;background:#f0fae1;color:#3d472b;">Saludable</span>
+              </sc-if>
+              <sc-if value="{{ plant.isThirsty }}">
+                <span style="display:inline-flex;width:fit-content;font-size:10px;padding:3px 9px;border-radius:12px;background:#faf1d9;color:#8a5a1f;">Sedienta hoy</span>
+              </sc-if>
+              <sc-if value="{{ plant.isCritical }}">
+                <span style="display:inline-flex;width:fit-content;font-size:10px;padding:3px 9px;border-radius:12px;background:#b2622d;color:#f5ead8;">Necesita atención</span>
+              </sc-if>
+              <div style="font-size:11px;opacity:0.6;margin-top:2px;">{{ plant.nextTaskText }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <button type="button" onClick="{{ openScan }}" aria-label="Escanear nueva planta" style="position:absolute;right:20px;bottom:92px;width:54px;height:54px;border-radius:50%;background:#7a8a5e;border:none;box-shadow:0 3px 10px rgba(46,43,37,0.16);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f5ead8" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+    </button>
+  </sc-if>
+
+  <!-- DETAIL -->
+  <sc-if value="{{ isDetail }}">
+    <div style="flex:1;overflow-y:auto;padding:20px 20px 96px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <button type="button" onClick="{{ goHome }}" aria-label="Volver" style="width:34px;height:34px;border-radius:50%;background:#ebddc5;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#201e1d" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div style="font-size:13px;opacity:0.55;">Ficha de planta</div>
+      </div>
+
+      <div style="aspect-ratio:1.6;border-radius:24px;background:#e9ddc3;display:flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <div style="width:34%;filter:{{ plant.pixelHue }};">
+          <svg viewBox="0 0 96 96" style="width:100%;height:auto;shape-rendering:crispEdges;">
+            <rect x="40" y="0" width="16" height="8" fill="#6b7d4c"/><rect x="24" y="8" width="48" height="8" fill="#8fa06c"/><rect x="16" y="16" width="8" height="8" fill="#56633f"/><rect x="24" y="16" width="48" height="8" fill="#8fa06c"/><rect x="72" y="16" width="8" height="8" fill="#56633f"/><rect x="8" y="24" width="8" height="8" fill="#56633f"/><rect x="16" y="24" width="64" height="8" fill="#8fa06c"/><rect x="80" y="24" width="8" height="8" fill="#56633f"/><rect x="24" y="32" width="8" height="8" fill="#56633f"/><rect x="32" y="32" width="32" height="8" fill="#8fa06c"/><rect x="64" y="32" width="8" height="8" fill="#56633f"/><rect x="40" y="40" width="16" height="8" fill="#56633f"/><rect x="40" y="48" width="16" height="8" fill="#56633f"/><rect x="32" y="56" width="32" height="8" fill="#4a3423"/><rect x="24" y="64" width="48" height="8" fill="#96582f"/><rect x="32" y="72" width="32" height="8" fill="#c2793f"/><rect x="32" y="80" width="32" height="8" fill="#c2793f"/><rect x="24" y="88" width="48" height="8" fill="#96582f"/>
+          </svg>
+        </div>
+      </div>
+
+      <h1 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:26px;margin:0 0 2px;">{{ plant.name }}</h1>
+      <div style="font-size:13px;font-style:italic;opacity:0.6;margin-bottom:10px;">{{ plant.species }}</div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;">
+        <sc-if value="{{ plant.isGood }}"><span style="font-size:11px;padding:4px 11px;border-radius:14px;background:#f0fae1;color:#3d472b;">Saludable</span></sc-if>
+        <sc-if value="{{ plant.isThirsty }}"><span style="font-size:11px;padding:4px 11px;border-radius:14px;background:#faf1d9;color:#8a5a1f;">Sedienta hoy</span></sc-if>
+        <sc-if value="{{ plant.isCritical }}"><span style="font-size:11px;padding:4px 11px;border-radius:14px;background:#b2622d;color:#f5ead8;">Necesita atención</span></sc-if>
+        <span style="font-size:11px;padding:4px 11px;border-radius:14px;background:#f9f4ed;color:#474238;">{{ plant.room }}</span>
+      </div>
+
+      <div style="background:#e1eecc;border-radius:20px;padding:14px 16px;display:flex;gap:10px;margin-bottom:22px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#3d472b" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;margin-top:1px;"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        <p style="margin:0;font-size:13px;line-height:1.5;color:#272e1b;">{{ plant.contextNote }}</p>
+      </div>
+
+      <h2 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:18px;margin:0 0 4px;">Tu plan de hoy</h2>
+      <div style="font-size:12px;opacity:0.55;margin-bottom:12px;">Generado según tu tierra, ubicación y mascotas</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;">
+        <span style="font-size:11px;padding:4px 11px;border-radius:14px;border:1px solid rgba(32,30,29,0.16);color:#645c50;">{{ plant.soilText }}</span>
+        <span style="font-size:11px;padding:4px 11px;border-radius:14px;border:1px solid rgba(32,30,29,0.16);color:#645c50;">{{ plant.lightText }}</span>
+        <span style="font-size:11px;padding:4px 11px;border-radius:14px;border:1px solid rgba(32,30,29,0.16);color:#645c50;">{{ plant.petsText }}</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+        <sc-for list="{{ plant.tasks }}" as="task" hint-placeholder-count="3">
+          <div onClick="{{ task.toggle }}" style="background:#ebddc5;border-radius:18px;padding:13px 14px;display:flex;gap:12px;cursor:pointer;">
+            <sc-if value="{{ task.done }}" hint-placeholder-val="{{ false }}">
+              <div style="width:24px;height:24px;border-radius:50%;background:#7a8a5e;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f5ead8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+            </sc-if>
+            <sc-if value="{{ task.notDone }}" hint-placeholder-val="{{ true }}">
+              <div style="width:24px;height:24px;border-radius:50%;border:1.5px solid rgba(32,30,29,0.25);flex:none;margin-top:1px;"></div>
+            </sc-if>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;gap:8px;">
+                <span style="font-weight:700;font-size:13.5px;{{ task.labelStyle }}">{{ task.label }}</span>
+                <span style="font-size:11px;color:#56633f;font-weight:700;white-space:nowrap;">+{{ task.points }} pts</span>
+              </div>
+              <p style="margin:4px 0 0;font-size:11.5px;opacity:0.65;line-height:1.4;">{{ task.why }}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h2 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:18px;margin:0 0 12px;">Historial</h2>
+      <div style="display:flex;gap:10px;overflow-x:auto;">
+        <sc-for list="{{ plant.history }}" as="h" hint-placeholder-count="3">
+          <div style="flex:none;width:84px;">
+            <div style="width:84px;height:84px;border-radius:16px;background:#e9ddc3;display:flex;align-items:center;justify-content:center;">
+              <svg viewBox="0 0 96 96" style="width:56%;height:auto;shape-rendering:crispEdges;filter:{{ plant.pixelHue }};">
+                <rect x="40" y="0" width="16" height="8" fill="#6b7d4c"/><rect x="24" y="8" width="48" height="8" fill="#8fa06c"/><rect x="16" y="16" width="8" height="8" fill="#56633f"/><rect x="24" y="16" width="48" height="8" fill="#8fa06c"/><rect x="72" y="16" width="8" height="8" fill="#56633f"/><rect x="8" y="24" width="8" height="8" fill="#56633f"/><rect x="16" y="24" width="64" height="8" fill="#8fa06c"/><rect x="80" y="24" width="8" height="8" fill="#56633f"/><rect x="24" y="32" width="8" height="8" fill="#56633f"/><rect x="32" y="32" width="32" height="8" fill="#8fa06c"/><rect x="64" y="32" width="8" height="8" fill="#56633f"/><rect x="40" y="40" width="16" height="8" fill="#56633f"/><rect x="40" y="48" width="16" height="8" fill="#56633f"/><rect x="32" y="56" width="32" height="8" fill="#4a3423"/><rect x="24" y="64" width="48" height="8" fill="#96582f"/><rect x="32" y="72" width="32" height="8" fill="#c2793f"/><rect x="32" y="80" width="32" height="8" fill="#c2793f"/><rect x="24" y="88" width="48" height="8" fill="#96582f"/>
+              </svg>
+            </div>
+            <div style="font-size:10px;opacity:0.55;margin-top:5px;text-align:center;">{{ h.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- PROFILE -->
+  <sc-if value="{{ isProfile }}">
+    <div style="flex:1;overflow-y:auto;padding:24px 20px 96px;">
+      <h1 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:22px;margin:0 0 18px;">Tu progreso</h1>
+
+      <div style="background:#ebddc5;border-radius:24px;padding:22px 18px;display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:16px;">
+        <div style="width:72px;height:72px;border-radius:50%;background:#eef2df;display:flex;align-items:center;justify-content:center;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#56633f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        </div>
+        <div style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:21px;">{{ levelName }}</div>
+        <div style="font-size:12px;opacity:0.6;">{{ points }} puntos · {{ pointsToNext }}</div>
+        <div style="width:100%;height:9px;border-radius:5px;background:#dcd3c4;overflow:hidden;margin-top:4px;">
+          <div style="height:100%;border-radius:5px;background:#7a8a5e;width:{{ levelProgressPct }}%;transition:width 0.6s ease;"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;background:#eef2df;border-radius:20px;padding:14px 16px;margin-bottom:20px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#56633f" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="flex:none;"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;">{{ streak }} días de racha</div>
+          <div style="font-size:11.5px;opacity:0.65;">Multiplicador x{{ multiplier }} · sigue regando a tiempo</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;">
+        <div style="background:#ebddc5;border-radius:16px;padding:12px 8px;text-align:center;">
+          <div style="font-family:'Caprasimo',system-ui;font-size:19px;">{{ plantCount }}</div>
+          <div style="font-size:10px;opacity:0.6;margin-top:2px;">plantas</div>
+        </div>
+        <div style="background:#ebddc5;border-radius:16px;padding:12px 8px;text-align:center;">
+          <div style="font-family:'Caprasimo',system-ui;font-size:19px;">{{ activeDays }}</div>
+          <div style="font-size:10px;opacity:0.6;margin-top:2px;">días activo</div>
+        </div>
+        <div style="background:#ebddc5;border-radius:16px;padding:12px 8px;text-align:center;">
+          <div style="font-family:'Caprasimo',system-ui;font-size:19px;">{{ tasksDone }}</div>
+          <div style="font-size:10px;opacity:0.6;margin-top:2px;">tareas</div>
+        </div>
+      </div>
+
+      <h2 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:17px;margin:0 0 12px;">Camino de niveles</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+        <sc-for list="{{ levels }}" as="lvl" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:12px;background:#ebddc5;border-radius:16px;padding:10px 14px;{{ lvl.opacityStyle }}">
+            <div style="width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;{{ lvl.badgeStyle }}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/></svg>
+            </div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:13.5px;">{{ lvl.name }}</div>
+              <div style="font-size:11px;opacity:0.6;">{{ lvl.minText }}</div>
+            </div>
+            <sc-if value="{{ lvl.isCurrent }}" hint-placeholder-val="{{ false }}">
+              <span style="font-size:10px;padding:3px 9px;border-radius:12px;background:#7a8a5e;color:#f5ead8;">Actual</span>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+
+      <h2 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:17px;margin:0 0 12px;">Logros</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;">
+        <sc-for list="{{ achievements }}" as="ach" hint-placeholder-count="6">
+          <div style="background:#ebddc5;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px;{{ ach.opacityStyle }}">
+            <div style="width:30px;height:30px;border-radius:50%;background:#eef2df;display:flex;align-items:center;justify-content:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#56633f" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+            </div>
+            <div style="font-weight:700;font-size:12.5px;">{{ ach.name }}</div>
+            <div style="font-size:10.5px;opacity:0.65;line-height:1.3;">{{ ach.desc }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h2 style="font-family:'Caprasimo',system-ui;font-weight:400;font-size:17px;margin:0 0 12px;">Actividad reciente</h2>
+      <div style="display:flex;flex-direction:column;gap:2px;">
+        <sc-for list="{{ activity }}" as="a" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid rgba(32,30,29,0.08);">
+            <div style="width:6px;height:6px;border-radius:50%;background:#7a8a5e;flex:none;"></div>
+            <div style="flex:1;font-size:12.5px;">{{ a.text }}</div>
+            <div style="font-size:11px;opacity:0.5;white-space:nowrap;">{{ a.when }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- BOTTOM NAV -->
+  <sc-if value="{{ showNav }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;border-top:1px solid rgba(32,30,29,0.08);background:#f5ead8;padding:10px 20px calc(10px + env(safe-area-inset-bottom));">
+      <button type="button" onClick="{{ goHome }}" style="flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px;border-radius:14px;{{ homeNavStyle }}">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span style="font-size:10.5px;font-weight:700;">Inicio</span>
+      </button>
+      <button type="button" onClick="{{ goProfile }}" style="flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px;border-radius:14px;{{ profileNavStyle }}">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span style="font-size:10.5px;font-weight:700;">Perfil</span>
+      </button>
+    </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toastVisible }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:18px;left:50%;background:#201e1d;color:#f5ead8;padding:10px 18px;border-radius:999px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 3px 10px rgba(46,43,37,0.16);animation:brote-toast 2.6s ease forwards;white-space:nowrap;z-index:20;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f6a06b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      {{ toastText }}
+    </div>
+  </sc-if>
+
+  <!-- SCAN MODAL -->
+  <sc-if value="{{ scanOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(46,43,37,0.5);display:flex;align-items:center;justify-content:center;padding:24px;z-index:30;">
+      <div style="width:100%;background:#ebddc5;border-radius:28px;padding:24px 20px;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 32px rgba(46,43,37,0.22);">
+
+        <sc-if value="{{ scanIsCamera }}" hint-placeholder-val="{{ true }}">
+          <div style="font-family:'Caprasimo',system-ui;font-size:18px;">Escanea tu planta</div>
+          <div style="aspect-ratio:1.3;border-radius:20px;background:repeating-linear-gradient(135deg,#dcd3c4,#dcd3c4 8px,#d2c7b2 8px,#d2c7b2 16px);display:flex;align-items:center;justify-content:center;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#82796a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+          </div>
+          <p style="margin:0;font-size:12.5px;opacity:0.65;">Encuadra la planta y toma una foto para identificarla y añadirla a tu colección.</p>
+          <button type="button" onClick="{{ takePhoto }}" style="background:#7a8a5e;color:#f5ead8;border:none;border-radius:999px;padding:12px;font-weight:700;font-size:14px;font-family:'Caprasimo',system-ui;cursor:pointer;">Tomar foto</button>
+          <button type="button" onClick="{{ closeScan }}" style="background:none;border:none;color:#7a8a5e;font-size:13px;font-weight:700;cursor:pointer;padding:4px;">Cancelar</button>
+        </sc-if>
+
+        <sc-if value="{{ scanIsLoading }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:20px 0;">
+            <div style="width:40px;height:40px;border-radius:50%;border:4px solid #dcd3c4;border-top-color:#7a8a5e;animation:brote-spin 0.9s linear infinite;"></div>
+            <div style="font-size:13.5px;font-weight:700;">Identificando planta…</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ scanIsResult }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;animation:brote-pop 0.35s ease;">
+            <div style="width:52px;height:52px;border-radius:50%;background:#f0fae1;display:flex;align-items:center;justify-content:center;margin-bottom:4px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#56633f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <div style="font-size:12px;opacity:0.6;">Identificamos tu planta</div>
+            <div style="font-family:'Caprasimo',system-ui;font-size:19px;">Sansevieria trifasciata</div>
+            <div style="font-size:12.5px;color:#56633f;font-weight:700;margin-top:2px;">+50 puntos</div>
+          </div>
+          <button type="button" onClick="{{ addScannedPlant }}" style="background:#7a8a5e;color:#f5ead8;border:none;border-radius:999px;padding:12px;font-weight:700;font-size:14px;font-family:'Caprasimo',system-ui;cursor:pointer;">Añadir a mi colección</button>
+          <button type="button" onClick="{{ closeScan }}" style="background:none;border:none;color:#7a8a5e;font-size:13px;font-weight:700;cursor:pointer;padding:4px;">Cerrar</button>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const LEVELS = [
+  { name: 'Semilla', min: 0 },
+  { name: 'Brote', min: 150 },
+  { name: 'Jardinero', min: 400 },
+  { name: 'Botánico', min: 900 },
+  { name: 'Maestro Verde', min: 1800 },
+];
+
+const INITIAL_PLANTS = [
+  {
+    id: 'monstera', name: 'Monstera Deliciosa', species: 'Monstera deliciosa', room: 'Sala de estar', pixelHue: 'hue-rotate(0deg)',
+    soilText: 'Sustrato universal + perlita', lightText: 'Luz indirecta media', petsText: 'Sin mascotas',
+    health: 'good', addedDaysAgo: 34,
+    contextNote: 'Esta semana hay menos luz solar registrada en tu zona. Ajustamos tu plan: riega 20% menos de lo normal.',
+    tasks: [
+      { id: 'water', label: 'Regar', points: 10, why: 'Esta semana hay menos luz — riega 20% menos de lo normal.', done: false },
+      { id: 'mist', label: 'Nebulizar hojas', points: 5, why: 'El ambiente está seco esta semana; ayuda a mantener la humedad.', done: false },
+      { id: 'rotate', label: 'Girar maceta 90°', points: 5, why: 'Ayuda a que crezca de forma pareja hacia la luz.', done: true },
+    ],
+    history: [{ label: 'Hace 30 días' }, { label: 'Hace 15 días' }, { label: 'Hoy' }],
+  },
+  {
+    id: 'echeveria', name: 'Echeveria Elegans', species: 'Echeveria elegans', room: 'Balcón', pixelHue: 'hue-rotate(-25deg)',
+    soilText: 'Mezcla para cactus', lightText: 'Sol directo', petsText: 'Tienes mascotas',
+    health: 'good', addedDaysAgo: 80,
+    contextNote: 'Detectamos que tienes mascotas en casa. Esta especie es segura, pero riega solo cuando la tierra esté seca.',
+    tasks: [
+      { id: 'water', label: 'Regar', points: 10, why: 'Riega solo cuando la tierra esté completamente seca.', done: false },
+      { id: 'check', label: 'Revisar hojas', points: 5, why: 'El sol directo puede quemar hojas nuevas.', done: false },
+    ],
+    history: [{ label: 'Hace 20 días' }, { label: 'Hoy' }],
+  },
+  {
+    id: 'pothos', name: 'Pothos', species: 'Epipremnum aureum', room: 'Baño', pixelHue: 'hue-rotate(15deg)',
+    soilText: 'Sustrato universal', lightText: 'Luz baja', petsText: 'Tienes mascotas',
+    health: 'thirsty', addedDaysAgo: 20,
+    contextNote: 'Baja luz + 9 días sin riego: prioriza regarla hoy antes que las demás.',
+    tasks: [
+      { id: 'water', label: 'Regar hoy', points: 10, why: 'La tierra está seca y llevas 9 días sin regar.', done: false },
+      { id: 'clean', label: 'Limpiar hojas', points: 5, why: 'El polvo bloquea la poca luz que recibe en el baño.', done: false },
+    ],
+    history: [{ label: 'Hoy' }],
+  },
+  {
+    id: 'ficus', name: 'Ficus Lyrata', species: 'Ficus lyrata', room: 'Habitación', pixelHue: 'hue-rotate(-45deg)',
+    soilText: 'Buen drenaje', lightText: 'Luz indirecta brillante', petsText: 'Sin mascotas',
+    health: 'critical', addedDaysAgo: 6,
+    contextNote: 'Hojas caídas y tierra encharcada pueden indicar exceso de agua. Reducimos la frecuencia de riego.',
+    tasks: [
+      { id: 'water', label: 'Regar con cuidado', points: 10, why: 'Puede haber exceso de riego — riega poco y revisa drenaje.', done: false },
+      { id: 'checkroot', label: 'Revisar raíces', points: 15, why: 'Hojas caídas sugieren revisar si hay raíces podridas.', done: false },
+    ],
+    history: [{ label: 'Hace 6 días' }, { label: 'Hoy' }],
+  },
+];
+
+const ACHIEVEMENTS = [
+  { id: 'first', name: 'Primera planta', desc: 'Añade tu primera planta', unlocked: true },
+  { id: 'collector', name: 'Colección de 4', desc: 'Ten 4 plantas activas', unlocked: true },
+  { id: 'streak7', name: 'Racha de 7', desc: '7 días seguidos de cuidado', unlocked: true },
+  { id: 'streak30', name: 'Racha de 30', desc: '30 días seguidos de cuidado', unlocked: false },
+  { id: 'botanico', name: 'Botánico', desc: 'Alcanza el nivel Botánico', unlocked: false },
+  { id: 'rescue', name: 'Rescate exitoso', desc: 'Recupera una planta crítica', unlocked: false },
+];
+
+function getLevelInfo(points) {
+  let idx = 0;
+  for (let i = 0; i < LEVELS.length; i++) if (points >= LEVELS[i].min) idx = i;
+  const cur = LEVELS[idx];
+  const next = LEVELS[idx + 1] || null;
+  const pct = next ? Math.min(100, Math.round(((points - cur.min) / (next.min - cur.min)) * 100)) : 100;
+  return { idx, cur, next, pct };
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'home',
+    selectedPlantId: 'monstera',
+    points: 640,
+    streak: 12,
+    plants: INITIAL_PLANTS,
+    activity: [
+      { text: 'Regaste tu Monstera Deliciosa', when: 'Hoy' },
+      { text: 'Racha de 12 días alcanzada', when: 'Hoy' },
+      { text: 'Identificaste una nueva planta: Ficus Lyrata', when: 'Hace 6 días' },
+      { text: 'Giraste la maceta de tu Monstera', when: 'Hace 2 días' },
+    ],
+    toastText: '',
+    toastKey: 0,
+    scanModal: null,
+  };
+
+  goHome = () => this.setState({ screen: 'home' });
+  goProfile = () => this.setState({ screen: 'profile' });
+  openPlant = (id) => this.setState({ screen: 'detail', selectedPlantId: id });
+
+  showToast = (text) => {
+    clearTimeout(this._toastTimer);
+    this.setState({ toastText: '' });
+    setTimeout(() => {
+      this.setState((s) => ({ toastText: text, toastKey: s.toastKey + 1 }));
+      this._toastTimer = setTimeout(() => this.setState({ toastText: '' }), 2600);
+    }, 30);
+  };
+
+  toggleTask = (plantId, taskId) => {
+    const beforeLevel = getLevelInfo(this.state.points).cur.name;
+    let addedPoints = 0;
+    const multiplier = this.state.streak >= 14 ? 3 : this.state.streak >= 7 ? 2 : 1;
+    const plants = this.state.plants.map((p) => {
+      if (p.id !== plantId) return p;
+      return {
+        ...p,
+        tasks: p.tasks.map((t) => {
+          if (t.id !== taskId) return t;
+          const nowDone = !t.done;
+          if (nowDone) addedPoints = t.points * multiplier;
+          return { ...t, done: nowDone };
+        }),
+      };
+    });
+    const newPoints = this.state.points + addedPoints;
+    this.setState({ plants, points: Math.max(0, newPoints) });
+    if (addedPoints > 0) {
+      const afterLevel = getLevelInfo(newPoints).cur.name;
+      if (afterLevel !== beforeLevel) this.showToast('¡Subiste a nivel ' + afterLevel + '!');
+      else this.showToast('+' + addedPoints + ' puntos');
+    }
+  };
+
+  openScan = () => this.setState({ scanModal: 'camera' });
+  closeScan = () => this.setState({ scanModal: null });
+  takePhoto = () => {
+    this.setState({ scanModal: 'loading' });
+    setTimeout(() => this.setState({ scanModal: 'result' }), 1400);
+  };
+  addScannedPlant = () => {
+    const newPlant = {
+      id: 'sansevieria-' + Date.now(), name: 'Sansevieria', species: 'Sansevieria trifasciata', room: 'Entrada', pixelHue: 'hue-rotate(35deg)',
+      soilText: 'Sustrato para cactus', lightText: 'Tolera poca luz', petsText: 'Sin mascotas',
+      health: 'good', addedDaysAgo: 0,
+      contextNote: 'Planta muy resistente — ideal para principiantes. Riega solo cada 2-3 semanas.',
+      tasks: [{ id: 'water', label: 'Regar', points: 10, why: 'Riega solo cuando la tierra esté seca por completo.', done: false }],
+      history: [{ label: 'Hoy' }],
+    };
+    this.setState((s) => ({
+      plants: [...s.plants, newPlant],
+      points: s.points + 50,
+      scanModal: null,
+      activity: [{ text: 'Identificaste una nueva planta: Sansevieria', when: 'Hoy' }, ...s.activity],
+    }));
+    this.showToast('+50 puntos · Nueva planta identificada');
+  };
+
+  renderVals() {
+    const s = this.state;
+    const levelInfo = getLevelInfo(s.points);
+    const multiplier = s.streak >= 14 ? 3 : s.streak >= 7 ? 2 : 1;
+    const activeDays = Math.max(...s.plants.map((p) => p.addedDaysAgo), s.streak);
+    const tasksDone = s.plants.reduce((n, p) => n + p.tasks.filter((t) => t.done).length, 0);
+
+    const plants = s.plants.map((p) => ({
+      ...p,
+      isGood: p.health === 'good',
+      isThirsty: p.health === 'thirsty',
+      isCritical: p.health === 'critical',
+      nextTaskText: p.tasks.find((t) => !t.done) ? p.tasks.find((t) => !t.done).label : 'Todo al día',
+      open: () => this.openPlant(p.id),
+    }));
+
+    const selected = s.plants.find((p) => p.id === s.selectedPlantId) || s.plants[0];
+    const plant = selected && {
+      ...selected,
+      isGood: selected.health === 'good',
+      isThirsty: selected.health === 'thirsty',
+      isCritical: selected.health === 'critical',
+      tasks: selected.tasks.map((t) => ({
+        ...t,
+        notDone: !t.done,
+        labelStyle: t.done ? 'text-decoration:line-through;opacity:0.5;' : '',
+        toggle: () => this.toggleTask(selected.id, t.id),
+      })),
+    };
+
+    const levels = LEVELS.map((lvl, i) => {
+      const reached = s.points >= lvl.min;
+      const isCurrent = i === levelInfo.idx;
+      return {
+        name: lvl.name,
+        minText: lvl.min === 0 ? 'Nivel inicial' : 'Desde ' + lvl.min + ' pts',
+        isCurrent,
+        opacityStyle: reached ? '' : 'opacity:0.45;',
+        badgeStyle: isCurrent ? 'background:#7a8a5e;color:#f5ead8;' : reached ? 'background:#e1eecc;color:#56633f;' : 'background:#dcd3c4;color:#82796a;',
+      };
+    });
+
+    const achievements = ACHIEVEMENTS.map((a) => ({ ...a, opacityStyle: a.unlocked ? '' : 'opacity:0.45;' }));
+
+    return {
+      isHome: s.screen === 'home',
+      isDetail: s.screen === 'detail',
+      isProfile: s.screen === 'profile',
+      showNav: s.screen === 'home' || s.screen === 'profile',
+      goHome: this.goHome, goProfile: this.goProfile,
+      homeNavStyle: s.screen === 'home' ? 'background:#eef2df;color:#56633f;' : 'color:#82796a;',
+      profileNavStyle: s.screen === 'profile' ? 'background:#eef2df;color:#56633f;' : 'color:#82796a;',
+      points: s.points, streak: s.streak, multiplier,
+      plantCount: s.plants.length, plants, plant,
+      levelName: levelInfo.cur.name,
+      levelProgressPct: levelInfo.pct,
+      pointsToNext: levelInfo.next ? (levelInfo.next.min - s.points) + ' para ' + levelInfo.next.name : 'Nivel máximo',
+      activeDays, tasksDone,
+      levels, achievements, activity: s.activity,
+      openScan: this.openScan, closeScan: this.closeScan, takePhoto: this.takePhoto, addScannedPlant: this.addScannedPlant,
+      scanOpen: !!s.scanModal,
+      scanIsCamera: s.scanModal === 'camera',
+      scanIsLoading: s.scanModal === 'loading',
+      scanIsResult: s.scanModal === 'result',
+      toastVisible: !!s.toastText,
+      toastText: s.toastText,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
