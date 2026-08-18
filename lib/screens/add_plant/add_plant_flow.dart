@@ -179,7 +179,7 @@ class _ScanStepState extends State<_ScanStep> {
                   label: 'Foto',
                   icon: Icons.camera_alt_outlined,
                   active: !_isManual,
-                  onTap: () => setState(() { _isManual = false; _found = null; _searched = false; }),
+                  onTap: () => setState(() { _isManual = false; _found = null; _error = null; }),
                 ),
                 _ToggleBtn(
                   label: 'Nombre',
