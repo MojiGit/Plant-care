@@ -48,34 +48,44 @@ class PlantIdService {
 
   /// Busca una planta por nombre en el knowledge base de Plant.id.
   static Future<PlantResult> search(String name) async {
-    final response = await _dio.get(
-      '/api/v3/kb/plants/search',
-      queryParameters: {
-        'q': name.trim(),
-        'details': 'common_names,watering',
-        'language': 'es',
-      },
-    );
+    try {
+      final response = await _dio.get(
+        '/api/v3/kb/plants/search',
+        queryParameters: {
+          'q': name.trim(),
+          'details': 'common_names,watering',
+        },
+      );
 
-    final entities = response.data['entities'] as List;
-    if (entities.isEmpty) throw Exception('not_found');
+      final entities = response.data['entities'] as List;
+      if (entities.isEmpty) throw Exception('not_found');
 
-    final entity = entities.first as Map<String, dynamic>;
-    final details = (entity['details'] ?? {}) as Map<String, dynamic>;
+      final entity = entities.first as Map<String, dynamic>;
+      final details = (entity['details'] ?? {}) as Map<String, dynamic>;
 
-    final commonNames = (details['common_names'] as List?) ?? [];
-    final commonName = commonNames.isNotEmpty
-        ? commonNames.first as String
-        : entity['matched_in'] as String? ?? name;
-    final species = entity['entity_name'] as String? ?? name;
-    final watering = (details['watering'] as Map?) ?? {};
-    final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
+      final commonNames = (details['common_names'] as List?) ?? [];
+      final commonName = commonNames.isNotEmpty
+          ? commonNames.first as String
+          : entity['matched_in'] as String? ?? name;
+      final species = entity['entity_name'] as String? ?? name;
+      final watering = (details['watering'] as Map?) ?? {};
+      final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
 
-    return PlantResult(
-      commonName: commonName,
-      species: species,
-      wateringMax: wateringMax,
-      isToxic: false,
-    );
+      return PlantResult(
+        commonName: commonName,
+        species: species,
+        wateringMax: wateringMax,
+        isToxic: false,
+      );
+    } on DioException catch (e) {
+      // Lanza con detalle para distinguir en la UI
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        throw Exception('network_error');
+      }
+      if (e.response?.statusCode == 401) throw Exception('auth_error');
+      throw Exception('api_error:${e.response?.statusCode}');
+    }
   }
 }

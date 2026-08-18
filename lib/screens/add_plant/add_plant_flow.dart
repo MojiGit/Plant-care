@@ -146,9 +146,14 @@ class _ScanStepState extends State<_ScanStep> {
       final result = await PlantIdService.search(name);
       setState(() => _found = result);
     } catch (e) {
-      setState(() => _error = e.toString().contains('not_found')
+      final msg = e.toString();
+      setState(() => _error = msg.contains('not_found')
           ? 'No encontramos esa planta. Intenta con otro nombre.'
-          : 'Error de conexión. Verifica tu internet.');
+          : msg.contains('auth_error')
+              ? 'API key inválida. Revisa secrets.dart.'
+              : msg.contains('network_error')
+                  ? 'Sin conexión. Verifica el internet del emulador.'
+                  : 'Error: $msg');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
