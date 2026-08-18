@@ -46,28 +46,33 @@ class PlantIdService {
     );
   }
 
-  /// Busca una planta por nombre en el knowledge base de Plant.id.
+  /// Busca una planta por nombre en el knowledge base de Plant.id (2 pasos).
   static Future<PlantResult> search(String name) async {
     try {
-      final response = await _dio.get(
+      // Paso 1: buscar por nombre → obtener access_token
+      final searchResponse = await _dio.get(
         '/api/v3/kb/plants/search',
-        queryParameters: {
-          'q': name.trim(),
-          'details': 'common_names,watering',
-        },
+        queryParameters: {'q': name.trim()},
       );
 
-      final entities = response.data['entities'] as List;
+      final entities = searchResponse.data['entities'] as List;
       if (entities.isEmpty) throw Exception('not_found');
 
       final entity = entities.first as Map<String, dynamic>;
-      final details = (entity['details'] ?? {}) as Map<String, dynamic>;
+      final accessToken = entity['access_token'] as String;
+      final species = entity['entity_name'] as String? ?? name;
 
+      // Paso 2: pedir detalles con el access_token
+      final detailResponse = await _dio.get(
+        '/api/v3/kb/plants/$accessToken',
+        queryParameters: {'details': 'common_names,watering'},
+      );
+
+      final details = (detailResponse.data['details'] ?? {}) as Map<String, dynamic>;
       final commonNames = (details['common_names'] as List?) ?? [];
       final commonName = commonNames.isNotEmpty
           ? commonNames.first as String
-          : entity['matched_in'] as String? ?? name;
-      final species = entity['entity_name'] as String? ?? name;
+          : species;
       final watering = (details['watering'] as Map?) ?? {};
       final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
 
@@ -78,7 +83,6 @@ class PlantIdService {
         isToxic: false,
       );
     } on DioException catch (e) {
-      // Lanza con detalle para distinguir en la UI
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.connectionError) {
