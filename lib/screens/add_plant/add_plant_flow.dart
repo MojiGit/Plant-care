@@ -1,23 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../data/models/plant.dart';
+import '../../data/models/plant_result.dart';
 import '../../data/plant_repository.dart';
 import '../../domain/care_plan_engine.dart';
+import '../../services/plant_id_service.dart';
 import '../../ui/app_theme.dart';
-
-class PlantResult {
-  final String commonName;
-  final String species;
-  final int wateringMax; // 1=Dry 2=Moist 3=Wet
-  final bool isToxic;
-
-  const PlantResult({
-    required this.commonName,
-    required this.species,
-    required this.wateringMax,
-    required this.isToxic,
-  });
-}
 
 class AddPlantFlow extends StatefulWidget {
   const AddPlantFlow({super.key});
@@ -123,7 +112,8 @@ class _ScanStepState extends State<_ScanStep> {
   bool _isManual = false;
   final _controller = TextEditingController();
   PlantResult? _found;
-  bool _searched = false;
+  bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -131,28 +121,37 @@ class _ScanStepState extends State<_ScanStep> {
     super.dispose();
   }
 
-  // Placeholder — reemplazado por Plant.id KB search en PC402
-  void _mockSearch(String name) {
-    if (name.trim().isEmpty) return;
-    setState(() {
-      _searched = true;
-      _found = PlantResult(
-        commonName: name.trim(),
-        species: '(especie pendiente — PC402)',
-        wateringMax: 2,
-        isToxic: false,
-      );
-    });
+  Future<void> _takePicture() async {
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+    if (image == null) return;
+
+    setState(() { _loading = true; _error = null; });
+    try {
+      final result = await PlantIdService.identify(image.path);
+      if (mounted) widget.onIdentified(result);
+    } catch (_) {
+      setState(() => _error = 'No pudimos identificar la planta. Intenta de nuevo.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
-  // Placeholder — reemplazado por cámara + Plant.id identify en PC402
-  void _mockScan() {
-    widget.onIdentified(const PlantResult(
-      commonName: 'Monstera',
-      species: 'Monstera deliciosa',
-      wateringMax: 2,
-      isToxic: true,
-    ));
+  Future<void> _searchPlant(String name) async {
+    if (name.trim().isEmpty) return;
+    setState(() { _loading = true; _error = null; _found = null; });
+    try {
+      final result = await PlantIdService.search(name);
+      setState(() => _found = result);
+    } catch (e) {
+      setState(() => _error = e.toString().contains('not_found')
+          ? 'No encontramos esa planta. Intenta con otro nombre.'
+          : 'Error de conexión. Verifica tu internet.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -201,21 +200,26 @@ class _ScanStepState extends State<_ScanStep> {
                 color: AppTheme.sageTint,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.camera_alt_outlined, size: 44, color: AppTheme.sage),
-                  const SizedBox(height: 10),
-                  Text('Cámara disponible en PC402',
-                      style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.muted)),
+                  Icon(Icons.camera_alt_outlined, size: 44, color: AppTheme.sage),
+                  SizedBox(height: 10),
+                  Text('Enfoca la planta y toma una foto'),
                 ],
               ),
             ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.terracotta)),
+            ],
             const Spacer(),
             FilledButton.icon(
-              onPressed: _mockScan,
-              icon: const Icon(Icons.document_scanner_outlined, size: 18),
-              label: const Text('Identificar (demo)'),
+              onPressed: _loading ? null : _takePicture,
+              icon: _loading
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.cream))
+                  : const Icon(Icons.camera_alt_outlined, size: 18),
+              label: Text(_loading ? 'Identificando…' : 'Tomar foto'),
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
             ),
           ] else ...[
@@ -244,24 +248,28 @@ class _ScanStepState extends State<_ScanStep> {
                   borderRadius: BorderRadius.circular(14),
                   borderSide: const BorderSide(color: AppTheme.sage, width: 2),
                 ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search, color: AppTheme.sage),
-                  onPressed: () => _mockSearch(_controller.text),
-                ),
+                suffixIcon: _loading
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.sage)),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.search, color: AppTheme.sage),
+                        onPressed: () => _searchPlant(_controller.text),
+                      ),
               ),
-              onSubmitted: _mockSearch,
+              onSubmitted: _searchPlant,
             ),
-            if (_searched && _found != null) ...[
+            if (_found != null) ...[
               const SizedBox(height: 20),
               _ResultCard(result: _found!),
-            ] else if (_searched) ...[
-              const SizedBox(height: 16),
-              Text('No encontramos esa planta. Intenta con otro nombre.',
-                  style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.muted)),
+            ] else if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.terracotta)),
             ],
             const Spacer(),
             FilledButton(
-              onPressed: _found != null ? () => widget.onIdentified(_found!) : null,
+              onPressed: (!_loading && _found != null) ? () => widget.onIdentified(_found!) : null,
               style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
               child: const Text('Continuar'),
             ),
@@ -360,19 +368,6 @@ class _ResultCard extends StatelessWidget {
                     )),
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppTheme.sageTint,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text('Demo',
-                style: GoogleFonts.figtree(
-                  fontSize: 11,
-                  color: AppTheme.sage,
-                  fontWeight: FontWeight.w600,
-                )),
           ),
         ],
       ),
