@@ -51,8 +51,8 @@ class PlantIdService {
     try {
       // Paso 1: buscar por nombre → obtener access_token
       final searchResponse = await _dio.get(
-        '/api/v3/kb/plants/search',
-        queryParameters: {'q': name.trim()},
+        '/api/v3/kb/plants/name_search',
+        queryParameters: {'q': name.trim(), 'lang': 'es'},
       );
 
       final entities = searchResponse.data['entities'] as List;
