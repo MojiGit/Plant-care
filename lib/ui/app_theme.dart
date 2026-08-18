@@ -8,6 +8,7 @@ class AppTheme {
   static const terracotta = Color(0xFFC67139);
   static const sage       = Color(0xFF7A8A5E);
   static const sageTint   = Color(0xFFEAEDE5);
+  static const amber      = Color(0xFFD4920F);
   static const warning    = Color(0xFFC67139);
 
   static ThemeData get theme {
@@ -40,7 +41,7 @@ class AppTheme {
       ),
       navigationBarTheme: const NavigationBarThemeData(
         backgroundColor: cream,
-        indicatorColor: sageTint,
+        indicatorColor: amber,
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: sage,
