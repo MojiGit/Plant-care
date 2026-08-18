@@ -5,11 +5,19 @@ import '../../data/plant_repository.dart';
 import '../../domain/care_plan_engine.dart';
 import '../../ui/app_theme.dart';
 
-// Datos de prueba — reemplazados por Plant.id en PC402
-const _mockCommonName  = 'Monstera';
-const _mockSpecies     = 'Monstera deliciosa';
-const _mockWateringMax = 2; // Moist
-const _mockIsToxic     = true;
+class PlantResult {
+  final String commonName;
+  final String species;
+  final int wateringMax; // 1=Dry 2=Moist 3=Wet
+  final bool isToxic;
+
+  const PlantResult({
+    required this.commonName,
+    required this.species,
+    required this.wateringMax,
+    required this.isToxic,
+  });
+}
 
 class AddPlantFlow extends StatefulWidget {
   const AddPlantFlow({super.key});
@@ -20,29 +28,38 @@ class AddPlantFlow extends StatefulWidget {
 
 class _AddPlantFlowState extends State<AddPlantFlow> {
   int _step = 0;
+  PlantResult? _result;
   LightCondition? _light;
   SoilType? _soil;
   bool _saving = false;
 
+  void _onPlantIdentified(PlantResult result) {
+    setState(() {
+      _result = result;
+      _step = 1;
+    });
+  }
+
   void _next() => setState(() => _step++);
 
   Future<void> _save() async {
-    if (_light == null || _soil == null || _saving) return;
+    final result = _result;
+    if (result == null || _light == null || _soil == null || _saving) return;
     setState(() => _saving = true);
 
     final interval = CarePlanEngine.checkInterval(
-      waterNeed: CarePlanEngine.waterNeedFromInt(_mockWateringMax),
+      waterNeed: CarePlanEngine.waterNeedFromInt(result.wateringMax),
       light: _light!,
       soil: _soil!,
     );
     final now = DateTime.now();
     final plant = Plant(
-      commonName: _mockCommonName,
-      species: _mockSpecies,
+      commonName: result.commonName,
+      species: result.species,
       addedAt: now.toIso8601String(),
       lightNeed: _light!.name,
       wateringIntervalDays: interval,
-      isToxic: _mockIsToxic,
+      isToxic: result.isToxic,
     );
     final repo = PlantRepository();
     final plantId = await repo.addPlant(plant);
@@ -70,15 +87,21 @@ class _AddPlantFlowState extends State<AddPlantFlow> {
         child: IndexedStack(
           index: _step,
           children: [
-            _ScanStep(onNext: _next),
+            _ScanStep(onIdentified: _onPlantIdentified),
             _ContextStep(
               light: _light,
               soil: _soil,
               onLightChanged: (v) => setState(() => _light = v),
-              onSoilChanged:  (v) => setState(() => _soil  = v),
+              onSoilChanged: (v) => setState(() => _soil = v),
               onNext: _next,
             ),
-            _ConfirmStep(saving: _saving, light: _light, soil: _soil, onSave: _save),
+            _ConfirmStep(
+              result: _result,
+              light: _light,
+              soil: _soil,
+              saving: _saving,
+              onSave: _save,
+            ),
           ],
         ),
       ),
@@ -86,11 +109,51 @@ class _AddPlantFlowState extends State<AddPlantFlow> {
   }
 }
 
-// ── Step 0: Scan placeholder ──────────────────────────────────────────────────
+// ── Step 0: Scan + Manual ─────────────────────────────────────────────────────
 
-class _ScanStep extends StatelessWidget {
-  final VoidCallback onNext;
-  const _ScanStep({required this.onNext});
+class _ScanStep extends StatefulWidget {
+  final ValueChanged<PlantResult> onIdentified;
+  const _ScanStep({required this.onIdentified});
+
+  @override
+  State<_ScanStep> createState() => _ScanStepState();
+}
+
+class _ScanStepState extends State<_ScanStep> {
+  bool _isManual = false;
+  final _controller = TextEditingController();
+  PlantResult? _found;
+  bool _searched = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // Placeholder — reemplazado por Plant.id KB search en PC402
+  void _mockSearch(String name) {
+    if (name.trim().isEmpty) return;
+    setState(() {
+      _searched = true;
+      _found = PlantResult(
+        commonName: name.trim(),
+        species: '(especie pendiente — PC402)',
+        wateringMax: 2,
+        isToxic: false,
+      );
+    });
+  }
+
+  // Placeholder — reemplazado por cámara + Plant.id identify en PC402
+  void _mockScan() {
+    widget.onIdentified(const PlantResult(
+      commonName: 'Monstera',
+      species: 'Monstera deliciosa',
+      wateringMax: 2,
+      isToxic: true,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,99 +163,216 @@ class _ScanStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Toma una foto\nde tu planta',
+            'Identifica tu planta',
             style: GoogleFonts.caprasimo(fontSize: 26, color: AppTheme.dark, height: 1.2),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Plant.id identificará la especie automáticamente.',
-            style: GoogleFonts.figtree(fontSize: 14, color: AppTheme.muted),
-          ),
-          const SizedBox(height: 28),
-          // Placeholder de cámara
+          const SizedBox(height: 20),
+          // Toggle cámara / manual
           Container(
-            width: double.infinity,
-            height: 260,
             decoration: BoxDecoration(
               color: AppTheme.sageTint,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(999),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.all(4),
+            child: Row(
               children: [
-                const Icon(Icons.camera_alt_outlined, size: 48, color: AppTheme.sage),
-                const SizedBox(height: 12),
-                Text(
-                  'Cámara disponible en PC402',
-                  style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.muted),
+                _ToggleBtn(
+                  label: 'Foto',
+                  icon: Icons.camera_alt_outlined,
+                  active: !_isManual,
+                  onTap: () => setState(() { _isManual = false; _found = null; _searched = false; }),
+                ),
+                _ToggleBtn(
+                  label: 'Nombre',
+                  icon: Icons.edit_outlined,
+                  active: _isManual,
+                  onTap: () => setState(() => _isManual = true),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
-          // Resultado mock
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.dark.withAlpha(18),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+          if (!_isManual) ...[
+            // ── Modo cámara ──
+            Container(
+              width: double.infinity,
+              height: 220,
+              decoration: BoxDecoration(
+                color: AppTheme.sageTint,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.camera_alt_outlined, size: 44, color: AppTheme.sage),
+                  const SizedBox(height: 10),
+                  Text('Cámara disponible en PC402',
+                      style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.muted)),
+                ],
+              ),
             ),
-            child: Row(
+            const Spacer(),
+            FilledButton.icon(
+              onPressed: _mockScan,
+              icon: const Icon(Icons.document_scanner_outlined, size: 18),
+              label: const Text('Identificar (demo)'),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            ),
+          ] else ...[
+            // ── Modo manual ──
+            Text('Escribe el nombre de la planta',
+                style: GoogleFonts.figtree(fontSize: 14, color: AppTheme.muted)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _controller,
+              autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                hintText: 'Ej: Pothos, Ficus, Cactus…',
+                hintStyle: GoogleFonts.figtree(color: AppTheme.muted),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFE0D8CC)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Color(0xFFE0D8CC)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppTheme.sage, width: 2),
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search, color: AppTheme.sage),
+                  onPressed: () => _mockSearch(_controller.text),
+                ),
+              ),
+              onSubmitted: _mockSearch,
+            ),
+            if (_searched && _found != null) ...[
+              const SizedBox(height: 20),
+              _ResultCard(result: _found!),
+            ] else if (_searched) ...[
+              const SizedBox(height: 16),
+              Text('No encontramos esa planta. Intenta con otro nombre.',
+                  style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.muted)),
+            ],
+            const Spacer(),
+            FilledButton(
+              onPressed: _found != null ? () => widget.onIdentified(_found!) : null,
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+              child: const Text('Continuar'),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _ToggleBtn({
+    required this.label,
+    required this.icon,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: active ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: active
+                ? [BoxShadow(color: AppTheme.dark.withAlpha(20), blurRadius: 4)]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: active ? AppTheme.sage : AppTheme.muted),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.figtree(
+                  fontSize: 13,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                  color: active ? AppTheme.dark : AppTheme.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ResultCard extends StatelessWidget {
+  final PlantResult result;
+  const _ResultCard({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.sage, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.sageTint,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.eco_rounded, color: AppTheme.sage, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppTheme.sageTint,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.eco_rounded, color: AppTheme.sage),
-                ),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _mockCommonName,
-                      style: GoogleFonts.caprasimo(fontSize: 16, color: AppTheme.dark),
-                    ),
-                    Text(
-                      _mockSpecies,
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: AppTheme.muted,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.sageTint,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    'Demo',
-                    style: GoogleFonts.figtree(fontSize: 11, color: AppTheme.sage, fontWeight: FontWeight.w600),
-                  ),
-                ),
+                Text(result.commonName,
+                    style: GoogleFonts.caprasimo(fontSize: 15, color: AppTheme.dark)),
+                Text(result.species,
+                    style: GoogleFonts.figtree(
+                      fontSize: 12,
+                      color: AppTheme.muted,
+                      fontStyle: FontStyle.italic,
+                    )),
               ],
             ),
           ),
-          const Spacer(),
-          FilledButton(
-            onPressed: onNext,
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
-            child: const Text('Continuar'),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.sageTint,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text('Demo',
+                style: GoogleFonts.figtree(
+                  fontSize: 11,
+                  color: AppTheme.sage,
+                  fontWeight: FontWeight.w600,
+                )),
           ),
         ],
       ),
@@ -200,7 +380,7 @@ class _ScanStep extends StatelessWidget {
   }
 }
 
-// ── Step 1: Light + Soil context ──────────────────────────────────────────────
+// ── Step 1: Context ───────────────────────────────────────────────────────────
 
 class _ContextStep extends StatelessWidget {
   final LightCondition? light;
@@ -235,28 +415,30 @@ class _ContextStep extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           Text('¿Cómo es la luz donde estará?',
-              style: GoogleFonts.figtree(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.dark)),
+              style: GoogleFonts.figtree(
+                  fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.dark)),
           const SizedBox(height: 12),
           _ChoiceGroup<LightCondition>(
             selected: light,
             onChanged: onLightChanged,
             options: const [
-              _Option(value: LightCondition.low,      icon: Icons.nights_stay_outlined, label: 'Poca luz',        sub: 'Interior sin ventana directa'),
-              _Option(value: LightCondition.indirect,  icon: Icons.wb_cloudy_outlined,   label: 'Luz indirecta',   sub: 'Cerca de ventana sin sol directo'),
-              _Option(value: LightCondition.direct,    icon: Icons.wb_sunny_outlined,    label: 'Luz directa',     sub: 'Ventana con sol directo'),
+              _Option(value: LightCondition.low,      icon: Icons.nights_stay_outlined, label: 'Poca luz',      sub: 'Interior sin ventana directa'),
+              _Option(value: LightCondition.indirect,  icon: Icons.wb_cloudy_outlined,   label: 'Luz indirecta', sub: 'Cerca de ventana sin sol directo'),
+              _Option(value: LightCondition.direct,    icon: Icons.wb_sunny_outlined,    label: 'Luz directa',   sub: 'Ventana con sol directo'),
             ],
           ),
           const SizedBox(height: 28),
           Text('¿Qué tipo de sustrato/maceta usas?',
-              style: GoogleFonts.figtree(fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.dark)),
+              style: GoogleFonts.figtree(
+                  fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.dark)),
           const SizedBox(height: 12),
           _ChoiceGroup<SoilType>(
             selected: soil,
             onChanged: onSoilChanged,
             options: const [
-              _Option(value: SoilType.draining,   icon: Icons.grain_outlined,         label: 'Buen drenaje',        sub: 'Arena, cactus mix, perlita'),
-              _Option(value: SoilType.normal,      icon: Icons.spa_outlined,           label: 'Normal',              sub: 'Sustrato universal'),
-              _Option(value: SoilType.retaining,   icon: Icons.water_drop_outlined,    label: 'Retiene humedad',     sub: 'Turba o maceta sin agujeros'),
+              _Option(value: SoilType.draining,  icon: Icons.grain_outlined,      label: 'Buen drenaje',    sub: 'Arena, cactus mix, perlita'),
+              _Option(value: SoilType.normal,     icon: Icons.spa_outlined,        label: 'Normal',          sub: 'Sustrato universal'),
+              _Option(value: SoilType.retaining,  icon: Icons.water_drop_outlined, label: 'Retiene humedad', sub: 'Turba o maceta sin agujeros'),
             ],
           ),
           const SizedBox(height: 32),
@@ -342,12 +524,14 @@ class _ChoiceGroup<T> extends StatelessWidget {
 // ── Step 2: Confirm ───────────────────────────────────────────────────────────
 
 class _ConfirmStep extends StatelessWidget {
+  final PlantResult? result;
   final LightCondition? light;
   final SoilType? soil;
   final bool saving;
   final VoidCallback onSave;
 
   const _ConfirmStep({
+    required this.result,
     required this.light,
     required this.soil,
     required this.saving,
@@ -369,9 +553,9 @@ class _ConfirmStep extends StatelessWidget {
       };
 
   int get _interval {
-    if (light == null || soil == null) return 0;
+    if (result == null || light == null || soil == null) return 0;
     return CarePlanEngine.checkInterval(
-      waterNeed: CarePlanEngine.waterNeedFromInt(_mockWateringMax),
+      waterNeed: CarePlanEngine.waterNeedFromInt(result!.wateringMax),
       light: light!,
       soil: soil!,
     );
@@ -379,22 +563,20 @@ class _ConfirmStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = result;
+    if (r == null) return const SizedBox.shrink();
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Todo listo',
-            style: GoogleFonts.caprasimo(fontSize: 26, color: AppTheme.dark),
-          ),
+          Text('Todo listo',
+              style: GoogleFonts.caprasimo(fontSize: 26, color: AppTheme.dark)),
           const SizedBox(height: 6),
-          Text(
-            'Revisa los datos antes de guardar.',
-            style: GoogleFonts.figtree(fontSize: 14, color: AppTheme.muted),
-          ),
+          Text('Revisa los datos antes de guardar.',
+              style: GoogleFonts.figtree(fontSize: 14, color: AppTheme.muted)),
           const SizedBox(height: 28),
-          // Tarjeta resumen
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -412,17 +594,16 @@ class _ConfirmStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_mockCommonName,
+                Text(r.commonName,
                     style: GoogleFonts.caprasimo(fontSize: 20, color: AppTheme.dark)),
-                Text(_mockSpecies,
+                Text(r.species,
                     style: GoogleFonts.figtree(
                       fontSize: 13,
                       color: AppTheme.muted,
                       fontStyle: FontStyle.italic,
                     )),
                 const SizedBox(height: 16),
-                // Alerta toxicidad
-                if (_mockIsToxic) ...[
+                if (r.isToxic) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
@@ -432,7 +613,8 @@ class _ConfirmStep extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.warning_amber_rounded, color: AppTheme.terracotta, size: 18),
+                        const Icon(Icons.warning_amber_rounded,
+                            color: AppTheme.terracotta, size: 18),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
