@@ -17,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _navIndex = 0;
   List<Plant> _plants = [];
+  Map<int, DateTime> _nextDue = {};
   bool _loading = true;
 
   @override
@@ -26,8 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPlants() async {
-    final plants = await PlantRepository().getPlants();
-    if (mounted) setState(() { _plants = plants; _loading = false; });
+    final repo = PlantRepository();
+    final plants = await repo.getPlants();
+    final nextDue = await repo.getNextDueDates();
+    if (mounted) setState(() { _plants = plants; _nextDue = nextDue; _loading = false; });
   }
 
   Future<void> _openAddPlant() async {
@@ -47,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator(color: AppTheme.sage))
               : _plants.isEmpty
                   ? _EmptyState(onAddPlant: _openAddPlant)
-                  : _PlantList(plants: _plants, onAddPlant: _openAddPlant),
+                  : _PlantList(plants: _plants, nextDue: _nextDue, onAddPlant: _openAddPlant),
       floatingActionButton: (_navIndex != 0 || _plants.isEmpty)
           ? null
           : FloatingActionButton(
@@ -84,8 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _PlantList extends StatelessWidget {
   final List<Plant> plants;
+  final Map<int, DateTime> nextDue;
   final VoidCallback onAddPlant;
-  const _PlantList({required this.plants, required this.onAddPlant});
+  const _PlantList({required this.plants, required this.nextDue, required this.onAddPlant});
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +108,7 @@ class _PlantList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, i) => _PlantCard(plant: plants[i]),
+              (context, i) => _PlantCard(plant: plants[i], nextDueAt: nextDue[plants[i].id]),
               childCount: plants.length,
             ),
           ),
@@ -117,13 +121,33 @@ class _PlantList extends StatelessWidget {
 
 class _PlantCard extends StatelessWidget {
   final Plant plant;
-  const _PlantCard({required this.plant});
+  final DateTime? nextDueAt;
+  const _PlantCard({required this.plant, this.nextDueAt});
 
   String get _lightLabel => switch (plant.lightNeed) {
         'low'    => 'Poca luz',
         'direct' => 'Luz directa',
         _        => 'Luz indirecta',
       };
+
+  String get _dueLabel {
+    if (nextDueAt == null) return 'Sin programar';
+    final now = DateTime.now();
+    final diff = nextDueAt!.difference(DateTime(now.year, now.month, now.day)).inDays;
+    if (diff < 0) return 'Vencida';
+    if (diff == 0) return 'Hoy';
+    if (diff == 1) return 'Mañana';
+    return 'En $diff días';
+  }
+
+  Color get _dueColor {
+    if (nextDueAt == null) return AppTheme.muted;
+    final now = DateTime.now();
+    final diff = nextDueAt!.difference(DateTime(now.year, now.month, now.day)).inDays;
+    if (diff < 0) return AppTheme.terracotta;
+    if (diff == 0) return AppTheme.terracotta;
+    return AppTheme.sage;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +210,7 @@ class _PlantCard extends StatelessWidget {
                     children: [
                       _Tag(label: _lightLabel),
                       const SizedBox(width: 6),
-                      _Tag(label: 'Revisión c/${plant.wateringIntervalDays}d'),
+                      _Tag(label: _dueLabel, color: _dueColor),
                       if (plant.isToxic) ...[
                         const SizedBox(width: 6),
                         _Tag(label: 'Tóxica', color: AppTheme.terracotta),

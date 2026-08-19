@@ -51,13 +51,19 @@ class _TodayScreenState extends State<TodayScreen> {
       nextDueAt: nextDue,
     );
 
-    // Si regó → registrar en historial + puntos + streak
-    if (result == CheckResult.watered) {
-      await _repo.logCareTask(plantId: plantId, taskType: 'water');
+    // Registrar control en historial siempre
+    final logType = switch (result) {
+      CheckResult.watered     => 'water',
+      CheckResult.allGood     => 'check_ok',
+      CheckResult.remindLater => 'check_later',
+    };
+    await _repo.logCareTask(plantId: plantId, taskType: logType);
 
-      final stats    = await _repo.getUserStats();
-      final points   = stats['points'] as int;
-      final streak   = stats['streak_days'] as int;
+    // Puntos + streak solo si regó
+    if (result == CheckResult.watered) {
+      final stats  = await _repo.getUserStats();
+      final points = stats['points'] as int;
+      final streak = stats['streak_days'] as int;
 
       final pr = GamificationEngine.addPoints(
         currentPoints: points,

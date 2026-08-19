@@ -75,6 +75,19 @@ class PlantRepository {
     });
   }
 
+  Future<Map<int, DateTime>> getNextDueDates() async {
+    final db = await _db;
+    final rows = await db.query('care_schedule', orderBy: 'next_due_at ASC');
+    final map = <int, DateTime>{};
+    for (final row in rows) {
+      final plantId = row['plant_id'] as int;
+      if (!map.containsKey(plantId)) {
+        map[plantId] = DateTime.parse(row['next_due_at'] as String).toLocal();
+      }
+    }
+    return map;
+  }
+
   Future<List<Map<String, dynamic>>> getPlantSchedule(int plantId) async {
     final db = await _db;
     return db.query(

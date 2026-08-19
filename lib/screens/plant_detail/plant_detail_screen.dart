@@ -295,9 +295,11 @@ class _HistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = switch (taskType) {
-      'water'    => 'Regó la planta',
-      'identify' => 'Planta identificada',
-      _          => taskType,
+      'water'        => 'Regó la planta',
+      'identify'     => 'Planta identificada',
+      'check_ok'     => 'Tierra en buen estado',
+      'check_later'  => 'Revisión pospuesta',
+      _              => taskType,
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
