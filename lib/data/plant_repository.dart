@@ -75,6 +75,16 @@ class PlantRepository {
     });
   }
 
+  Future<List<Map<String, dynamic>>> getPlantSchedule(int plantId) async {
+    final db = await _db;
+    return db.query(
+      'care_schedule',
+      where: 'plant_id = ?',
+      whereArgs: [plantId],
+      orderBy: 'next_due_at ASC',
+    );
+  }
+
   Future<List<Map<String, dynamic>>> getDueTasks() async {
     final db = await _db;
     final now = DateTime.now().toIso8601String();

@@ -4,6 +4,7 @@ import '../../data/models/plant.dart';
 import '../../data/plant_repository.dart';
 import '../../ui/app_theme.dart';
 import '../add_plant/add_plant_flow.dart';
+import '../plant_detail/plant_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -116,13 +117,22 @@ class _PlantCard extends StatelessWidget {
   const _PlantCard({required this.plant});
 
   String get _lightLabel => switch (plant.lightNeed) {
-        'low'      => 'Poca luz',
-        'direct'   => 'Luz directa',
-        _          => 'Luz indirecta',
+        'low'    => 'Poca luz',
+        'direct' => 'Luz directa',
+        _        => 'Luz indirecta',
       };
 
   @override
   Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => PlantDetailScreen(plant: plant)),
+      ),
+      child: _buildCard(),
+    );
+  }
+
+  Widget _buildCard() {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
