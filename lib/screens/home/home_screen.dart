@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _repo = PlantRepository();
   int _navIndex = 0;
   List<Plant> _plants = [];
   Map<int, DateTime> _nextDue = {};
@@ -27,9 +28,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPlants() async {
-    final repo = PlantRepository();
-    final plants = await repo.getPlants();
-    final nextDue = await repo.getNextDueDates();
+    final plants = await _repo.getPlants();
+    final nextDue = await _repo.getNextDueDates();
     if (mounted) setState(() { _plants = plants; _nextDue = nextDue; _loading = false; });
   }
 
@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _navIndex,
         onDestinationSelected: (i) {
-          setState(() => _navIndex = i);
+          setState(() { _navIndex = i; if (i == 0) _loading = true; });
           if (i == 0) _loadPlants();
         },
         destinations: const [
@@ -133,23 +133,16 @@ class _PlantCard extends StatelessWidget {
         _        => 'Luz indirecta',
       };
 
-  String get _dueLabel {
-    if (nextDueAt == null) return 'Sin programar';
+  ({String label, Color color}) get _dueInfo {
+    if (nextDueAt == null) return (label: 'Sin programar', color: AppTheme.muted);
     final now = DateTime.now();
-    final diff = nextDueAt!.difference(DateTime(now.year, now.month, now.day)).inDays;
-    if (diff < 0) return 'Vencida';
-    if (diff == 0) return 'Hoy';
-    if (diff == 1) return 'Mañana';
-    return 'En $diff días';
-  }
-
-  Color get _dueColor {
-    if (nextDueAt == null) return AppTheme.muted;
-    final now = DateTime.now();
-    final diff = nextDueAt!.difference(DateTime(now.year, now.month, now.day)).inDays;
-    if (diff < 0) return AppTheme.terracotta;
-    if (diff == 0) return AppTheme.terracotta;
-    return AppTheme.sage;
+    final today = DateTime(now.year, now.month, now.day);
+    final due   = DateTime(nextDueAt!.year, nextDueAt!.month, nextDueAt!.day);
+    final diff  = due.difference(today).inDays;
+    if (diff < 0)  return (label: 'Vencida',      color: AppTheme.terracotta);
+    if (diff == 0) return (label: 'Hoy',           color: AppTheme.amber);
+    if (diff == 1) return (label: 'Mañana',        color: AppTheme.sage);
+    return           (label: 'En $diff días',      color: AppTheme.sage);
   }
 
   @override
@@ -213,7 +206,7 @@ class _PlantCard extends StatelessWidget {
                     children: [
                       _Tag(label: _lightLabel),
                       const SizedBox(width: 6),
-                      _Tag(label: _dueLabel, color: _dueColor),
+                      _Tag(label: _dueInfo.label, color: _dueInfo.color),
                       if (plant.isToxic) ...[
                         const SizedBox(width: 6),
                         _Tag(label: 'Tóxica', color: AppTheme.terracotta),
