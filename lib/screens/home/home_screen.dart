@@ -5,6 +5,7 @@ import '../../data/plant_repository.dart';
 import '../../ui/app_theme.dart';
 import '../add_plant/add_plant_flow.dart';
 import '../plant_detail/plant_detail_screen.dart';
+import '../today/today_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -40,12 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Monstera')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.sage))
-          : _plants.isEmpty
-              ? _EmptyState(onAddPlant: _openAddPlant)
-              : _PlantList(plants: _plants, onAddPlant: _openAddPlant),
-      floatingActionButton: _plants.isEmpty
+      body: _navIndex == 1
+          ? const TodayScreen()
+          : _loading
+              ? const Center(child: CircularProgressIndicator(color: AppTheme.sage))
+              : _plants.isEmpty
+                  ? _EmptyState(onAddPlant: _openAddPlant)
+                  : _PlantList(plants: _plants, onAddPlant: _openAddPlant),
+      floatingActionButton: (_navIndex != 0 || _plants.isEmpty)
           ? null
           : FloatingActionButton(
               onPressed: _openAddPlant,
