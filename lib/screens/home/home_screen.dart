@@ -60,7 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _navIndex,
-        onDestinationSelected: (i) => setState(() => _navIndex = i),
+        onDestinationSelected: (i) {
+          setState(() => _navIndex = i);
+          if (i == 0) _loadPlants();
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.eco_outlined),
