@@ -59,21 +59,22 @@ class _TodayScreenState extends State<TodayScreen> {
     };
     await _repo.logCareTask(plantId: plantId, taskType: logType);
 
-    // Puntos + streak solo si regó
-    if (result == CheckResult.watered) {
+    // Puntos: regar = 3pts, revisar tierra = 1pt
+    if (result == CheckResult.watered || result == CheckResult.allGood) {
       final stats  = await _repo.getUserStats();
       final points = stats['points'] as int;
       final streak = stats['streak_days'] as int;
 
-      final pr = GamificationEngine.addPoints(
-        currentPoints: points,
-        action: PlantAction.water,
-      );
-      final sr = GamificationEngine.evaluateStreak(
-        currentStreak: streak,
-        dueDate: dueAt,
-        completedAt: DateTime.now(),
-      );
+      final action = result == CheckResult.watered ? PlantAction.water : PlantAction.checkSoil;
+      final pr = GamificationEngine.addPoints(currentPoints: points, action: action);
+
+      final sr = result == CheckResult.watered
+          ? GamificationEngine.evaluateStreak(
+              currentStreak: streak,
+              dueDate: dueAt,
+              completedAt: DateTime.now(),
+            )
+          : StreakResult(streakCount: streak, broken: false);
 
       await _repo.updateUserStats(
         points: pr.totalPoints,

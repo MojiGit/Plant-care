@@ -6,6 +6,7 @@ import '../../data/models/plant.dart';
 import '../../data/models/plant_result.dart';
 import '../../data/plant_repository.dart';
 import '../../domain/care_plan_engine.dart';
+import '../../domain/gamification_engine.dart';
 import '../../services/plant_id_service.dart';
 import '../../ui/app_theme.dart';
 
@@ -64,6 +65,19 @@ class _AddPlantFlowState extends State<AddPlantFlow> {
     final repo = PlantRepository();
     final plantId = await repo.addPlant(plant);
     await repo.logCareTask(plantId: plantId, taskType: 'identify');
+
+    // 50 puntos por identificar una planta nueva
+    final stats = await repo.getUserStats();
+    final pr = GamificationEngine.addPoints(
+      currentPoints: stats['points'] as int,
+      action: PlantAction.identify,
+    );
+    await repo.updateUserStats(
+      points: pr.totalPoints,
+      streakDays: stats['streak_days'] as int,
+      lastActiveDate: now.toIso8601String(),
+    );
+
     await repo.setSchedule(
       plantId: plantId,
       taskType: 'water',

@@ -1,4 +1,4 @@
-enum PlantAction { water, identify }
+enum PlantAction { water, checkSoil, identify }
 
 enum Level { seedling, gardener, botanist, masterBotanist }
 
@@ -27,8 +27,9 @@ class StreakResult {
 
 class GamificationEngine {
   static const _points = {
-    PlantAction.water:    3,
-    PlantAction.identify: 50,
+    PlantAction.water:     3,
+    PlantAction.checkSoil: 1,
+    PlantAction.identify:  50,
   };
 
   static const _thresholds = {
