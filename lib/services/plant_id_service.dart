@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../config/secrets.dart';
 import '../data/models/plant_result.dart';
@@ -11,9 +10,6 @@ Map<String, dynamic> _asMap(dynamic value) =>
 const _details = 'watering,description,edible_parts,propagation_methods,taxonomy,toxicity';
 
 PlantResult _parseDetails(String species, Map<String, dynamic> details) {
-  debugPrint('>>> [parseDetails] species=$species keys=${details.keys.toList()}');
-  debugPrint('>>> [parseDetails] watering=${details['watering']}');
-  debugPrint('>>> [parseDetails] toxicity=${details['toxicity']}');
   final watering = details['watering'] != null ? _asMap(details['watering']) : <String, dynamic>{};
   final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
 
@@ -92,7 +88,7 @@ class PlantIdService {
     try {
       final searchResponse = await _dio.get(
         '/api/v3/kb/plants/name_search',
-        queryParameters: {'q': name.trim(), 'lang': 'es'},
+        queryParameters: {'q': name.trim(), 'lang': 'en'},
       );
 
       final entities = searchResponse.data['entities'] as List;
@@ -106,9 +102,6 @@ class PlantIdService {
         '/api/v3/kb/plants/$accessToken',
         queryParameters: {'details': _details},
       );
-
-      debugPrint('>>> search KB response keys: ${(detailResponse.data as Map).keys.toList()}');
-      debugPrint('>>> details key value: ${detailResponse.data['details']}');
 
       final details = detailResponse.data['details'] != null
           ? _asMap(detailResponse.data['details'])
