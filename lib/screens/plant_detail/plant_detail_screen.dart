@@ -152,12 +152,13 @@ class _PlantHeader extends StatelessWidget {
                   children: [
                     Text(plant.commonName,
                         style: GoogleFonts.caprasimo(fontSize: 20, color: AppTheme.dark)),
-                    Text(plant.species,
-                        style: GoogleFonts.figtree(
-                          fontSize: 13,
-                          color: AppTheme.muted,
-                          fontStyle: FontStyle.italic,
-                        )),
+                    if (plant.species != plant.commonName)
+                      Text(plant.species,
+                          style: GoogleFonts.figtree(
+                            fontSize: 13,
+                            color: AppTheme.muted,
+                            fontStyle: FontStyle.italic,
+                          )),
                   ],
                 ),
               ),

@@ -193,14 +193,15 @@ class _PlantCard extends StatelessWidget {
                     plant.commonName,
                     style: GoogleFonts.caprasimo(fontSize: 16, color: AppTheme.dark),
                   ),
-                  Text(
-                    plant.species,
-                    style: GoogleFonts.figtree(
-                      fontSize: 12,
-                      color: AppTheme.muted,
-                      fontStyle: FontStyle.italic,
+                  if (plant.species != plant.commonName)
+                    Text(
+                      plant.species,
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: AppTheme.muted,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
