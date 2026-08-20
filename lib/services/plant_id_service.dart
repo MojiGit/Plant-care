@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../config/secrets.dart';
 import '../data/models/plant_result.dart';
@@ -11,11 +10,6 @@ Map<String, dynamic> _asMap(dynamic value) =>
 const _details = 'watering,description,edible_parts,propagation_methods,taxonomy';
 
 PlantResult _parseDetails(String species, Map<String, dynamic> details) {
-  debugPrint('>>> _parseDetails for $species: keys=${details.keys.toList()}');
-  debugPrint('>>> family raw: ${details['taxonomy']}');
-  debugPrint('>>> description raw: ${details['description']}');
-  debugPrint('>>> edible_parts raw: ${details['edible_parts']}');
-  debugPrint('>>> propagation_methods raw: ${details['propagation_methods']}');
   final watering = details['watering'] != null ? _asMap(details['watering']) : <String, dynamic>{};
   final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
 
@@ -57,7 +51,6 @@ class PlantIdService {
 
       final response = await _dio.post(
         '/api/v3/identification',
-        queryParameters: {'details': _details},
         data: {'images': [base64Image], 'similar_images': false},
       );
 
@@ -66,8 +59,21 @@ class PlantIdService {
       if (suggestions.isEmpty) throw Exception('no_suggestions');
 
       final top = _asMap(suggestions.first);
-      final details = top['details'] != null ? _asMap(top['details']) : <String, dynamic>{};
-      return _parseDetails(top['name'] as String, details);
+      final species = top['name'] as String;
+      final accessToken = top['access_token'] as String?;
+
+      if (accessToken != null) {
+        final detailResponse = await _dio.get(
+          '/api/v3/kb/plants/$accessToken',
+          queryParameters: {'details': _details},
+        );
+        final details = detailResponse.data['details'] != null
+            ? _asMap(detailResponse.data['details'])
+            : <String, dynamic>{};
+        return _parseDetails(species, details);
+      }
+
+      return _parseDetails(species, <String, dynamic>{});
     } on DioException catch (e) {
       _throwTyped(e);
     }
