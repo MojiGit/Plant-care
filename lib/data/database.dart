@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -10,13 +11,17 @@ class AppDatabase {
   }
 
   static Future<Database> _open() async {
+    debugPrint('>>> DB _open() start');
     final dbPath = await getDatabasesPath();
-    return openDatabase(
+    debugPrint('>>> DB path: $dbPath');
+    final db = await openDatabase(
       join(dbPath, 'monstera.db'),
       version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
+    debugPrint('>>> DB opened successfully');
+    return db;
   }
 
   static Future<void> _onCreate(Database db, int version) async {

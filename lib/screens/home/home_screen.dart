@@ -24,15 +24,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    debugPrint('>>> HomeScreen.initState()');
     _loadPlants();
   }
 
   Future<void> _loadPlants() async {
+    debugPrint('>>> _loadPlants() start');
     try {
       final plants = await _repo.getPlants();
+      debugPrint('>>> getPlants() returned ${plants.length} plants');
       final nextDue = await _repo.getNextDueDates();
+      debugPrint('>>> getNextDueDates() done');
       if (mounted) setState(() { _plants = plants; _nextDue = nextDue; _loading = false; });
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('>>> _loadPlants ERROR: $e\n$st');
       if (mounted) setState(() => _loading = false);
     }
   }
