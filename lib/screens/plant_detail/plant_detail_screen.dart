@@ -425,24 +425,75 @@ class _InfoCard extends StatelessWidget {
         children: [
           if (plant.family != null) ...[
             _InfoRow(label: 'Familia', value: plant.family!),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
           ],
           if (plant.description != null) ...[
             Text('Descripción',
                 style: GoogleFonts.figtree(
                     fontSize: 12, color: AppTheme.muted, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
-            Text(plant.description!,
-                style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.dark, height: 1.5)),
-            const SizedBox(height: 10),
+            Text(
+              plant.description!,
+              style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.dark, height: 1.5),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 14),
           ],
           if (plant.edibleParts.isNotEmpty) ...[
-            _InfoRow(label: 'Partes comestibles', value: plant.edibleParts.join(', ')),
-            const SizedBox(height: 10),
+            Text('Partes comestibles',
+                style: GoogleFonts.figtree(
+                    fontSize: 12, color: AppTheme.muted, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: plant.edibleParts
+                  .map((p) => _Chip(label: p, color: AppTheme.amber))
+                  .toList(),
+            ),
+            const SizedBox(height: 14),
           ],
-          if (plant.propagationMethods.isNotEmpty)
-            _InfoRow(label: 'Propagación', value: plant.propagationMethods.join(', ')),
+          if (plant.propagationMethods.isNotEmpty) ...[
+            Text('Propagación',
+                style: GoogleFonts.figtree(
+                    fontSize: 12, color: AppTheme.muted, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: plant.propagationMethods
+                  .map((m) => _Chip(label: m, color: AppTheme.sage))
+                  .toList(),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _Chip({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withAlpha(25),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withAlpha(60)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.figtree(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }

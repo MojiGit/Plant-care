@@ -212,16 +212,22 @@ class _PlantCard extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                       ),
                     ),
+                  if (plant.family != null)
+                    Text(
+                      plant.family!,
+                      style: GoogleFonts.figtree(fontSize: 11, color: AppTheme.muted),
+                    ),
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
                       _Tag(label: _lightLabel),
-                      const SizedBox(width: 6),
                       _Tag(label: _dueInfo.label, color: _dueInfo.color),
-                      if (plant.isToxic) ...[
-                        const SizedBox(width: 6),
+                      if (plant.edibleParts.isNotEmpty)
+                        _Tag(label: 'Comestible', color: AppTheme.amber),
+                      if (plant.isToxic)
                         _Tag(label: 'Tóxica', color: AppTheme.terracotta),
-                      ],
                     ],
                   ),
                 ],
