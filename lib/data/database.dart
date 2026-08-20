@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -11,24 +10,19 @@ class AppDatabase {
   }
 
   static Future<Database> _open() async {
-    debugPrint('>>> DB _open() start');
     final dbPath = await getDatabasesPath();
-    debugPrint('>>> DB path: $dbPath');
-    final db = await openDatabase(
+    return openDatabase(
       join(dbPath, 'monstera.db'),
-      version: 5,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
-    debugPrint('>>> DB opened successfully');
-    return db;
   }
 
   static Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE plants (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        common_name TEXT NOT NULL,
         species TEXT NOT NULL,
         nickname TEXT,
         soil_type TEXT NOT NULL DEFAULT 'normal',
@@ -65,7 +59,6 @@ class AppDatabase {
       )
     ''');
 
-    // Single-row table: INSERT once, UPDATE always after
     await db.execute('''
       CREATE TABLE user_stats (
         id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -95,6 +88,36 @@ class AppDatabase {
     }
     if (oldVersion < 5) {
       await db.execute('ALTER TABLE user_stats ADD COLUMN nickname TEXT');
+    }
+    if (oldVersion < 6) {
+      // Remove common_name (NOT NULL) by recreating the plants table
+      await db.execute('''
+        CREATE TABLE plants_v6 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          species TEXT NOT NULL,
+          nickname TEXT,
+          soil_type TEXT NOT NULL DEFAULT 'normal',
+          water_need TEXT NOT NULL DEFAULT 'moist',
+          family TEXT,
+          description TEXT,
+          edible_parts TEXT,
+          propagation_methods TEXT,
+          photo_path TEXT,
+          added_at TEXT NOT NULL,
+          light_need TEXT NOT NULL,
+          watering_interval_days INTEGER NOT NULL,
+          is_toxic INTEGER NOT NULL DEFAULT 0
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO plants_v6
+          SELECT id, species, nickname, soil_type, water_need, family,
+                 description, edible_parts, propagation_methods, photo_path,
+                 added_at, light_need, watering_interval_days, is_toxic
+          FROM plants
+      ''');
+      await db.execute('DROP TABLE plants');
+      await db.execute('ALTER TABLE plants_v6 RENAME TO plants');
     }
   }
 }
