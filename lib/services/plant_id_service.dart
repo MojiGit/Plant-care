@@ -11,6 +11,9 @@ Map<String, dynamic> _asMap(dynamic value) =>
 const _details = 'watering,description,edible_parts,propagation_methods,taxonomy,toxicity';
 
 PlantResult _parseDetails(String species, Map<String, dynamic> details) {
+  debugPrint('>>> [parseDetails] species=$species keys=${details.keys.toList()}');
+  debugPrint('>>> [parseDetails] watering=${details['watering']}');
+  debugPrint('>>> [parseDetails] toxicity=${details['toxicity']}');
   final watering = details['watering'] != null ? _asMap(details['watering']) : <String, dynamic>{};
   final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
 
