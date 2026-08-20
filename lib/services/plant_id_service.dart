@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../config/secrets.dart';
 import '../data/models/plant_result.dart';
@@ -98,9 +99,12 @@ class PlantIdService {
         queryParameters: {'details': _details},
       );
 
+      debugPrint('>>> search KB response keys: ${(detailResponse.data as Map).keys.toList()}');
+      debugPrint('>>> details key value: ${detailResponse.data['details']}');
+
       final details = detailResponse.data['details'] != null
           ? _asMap(detailResponse.data['details'])
-          : <String, dynamic>{};
+          : _asMap(detailResponse.data);
       return _parseDetails(species, details);
     } on DioException catch (e) {
       _throwTyped(e);
