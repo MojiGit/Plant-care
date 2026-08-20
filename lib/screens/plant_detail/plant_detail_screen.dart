@@ -49,7 +49,10 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
 
   String _daysUntil(String iso) {
     final due = DateTime.parse(iso).toLocal();
-    final diff = due.difference(DateTime.now()).inDays;
+    final now = DateTime.now();
+    final dueDay = DateTime(due.year, due.month, due.day);
+    final today  = DateTime(now.year, now.month, now.day);
+    final diff   = dueDay.difference(today).inDays;
     if (diff < 0) return 'Vencido';
     if (diff == 0) return 'Hoy';
     if (diff == 1) return 'Mañana';
