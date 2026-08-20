@@ -30,16 +30,20 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   }
 
   Future<void> _load() async {
-    final plantData = await _repo.getPlant(_plant.id!);
-    final history = await _repo.getCareHistory(_plant.id!);
-    final schedule = await _repo.getPlantSchedule(_plant.id!);
-    if (mounted) {
-      setState(() {
-        if (plantData != null) { _plant = plantData; _nickname = plantData.nickname; }
-        _history = history;
-        _schedule = schedule;
-        _loading = false;
-      });
+    try {
+      final plantData = await _repo.getPlant(_plant.id!);
+      final history = await _repo.getCareHistory(_plant.id!);
+      final schedule = await _repo.getPlantSchedule(_plant.id!);
+      if (mounted) {
+        setState(() {
+          if (plantData != null) { _plant = plantData; _nickname = plantData.nickname; }
+          _history = history;
+          _schedule = schedule;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
     }
   }
 

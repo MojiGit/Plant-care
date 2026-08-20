@@ -28,9 +28,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPlants() async {
-    final plants = await _repo.getPlants();
-    final nextDue = await _repo.getNextDueDates();
-    if (mounted) setState(() { _plants = plants; _nextDue = nextDue; _loading = false; });
+    try {
+      final plants = await _repo.getPlants();
+      final nextDue = await _repo.getNextDueDates();
+      if (mounted) setState(() { _plants = plants; _nextDue = nextDue; _loading = false; });
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _openAddPlant() async {

@@ -74,8 +74,8 @@ class AppDatabase {
       await db.execute('ALTER TABLE plants ADD COLUMN nickname TEXT');
     }
     if (oldVersion < 3) {
-      await db.execute("ALTER TABLE plants ADD COLUMN soil_type TEXT NOT NULL DEFAULT 'normal'");
-      await db.execute("ALTER TABLE plants ADD COLUMN water_need TEXT NOT NULL DEFAULT 'moist'");
+      await db.execute("ALTER TABLE plants ADD COLUMN soil_type TEXT DEFAULT 'normal'");
+      await db.execute("ALTER TABLE plants ADD COLUMN water_need TEXT DEFAULT 'moist'");
     }
   }
 }
