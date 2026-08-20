@@ -132,7 +132,7 @@ class PlantRepository {
     final db = await _db;
     final now = DateTime.now().toIso8601String();
     return db.rawQuery('''
-      SELECT cs.*, p.common_name
+      SELECT cs.*, p.species, p.nickname
       FROM care_schedule cs
       JOIN plants p ON p.id = cs.plant_id
       WHERE cs.next_due_at <= ?

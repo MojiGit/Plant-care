@@ -13,7 +13,7 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'monstera.db'),
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -28,6 +28,10 @@ class AppDatabase {
         nickname TEXT,
         soil_type TEXT NOT NULL DEFAULT 'normal',
         water_need TEXT NOT NULL DEFAULT 'moist',
+        family TEXT,
+        description TEXT,
+        edible_parts TEXT,
+        propagation_methods TEXT,
         photo_path TEXT,
         added_at TEXT NOT NULL,
         light_need TEXT NOT NULL,
@@ -76,6 +80,12 @@ class AppDatabase {
     if (oldVersion < 3) {
       await db.execute("ALTER TABLE plants ADD COLUMN soil_type TEXT DEFAULT 'normal'");
       await db.execute("ALTER TABLE plants ADD COLUMN water_need TEXT DEFAULT 'moist'");
+    }
+    if (oldVersion < 4) {
+      await db.execute('ALTER TABLE plants ADD COLUMN family TEXT');
+      await db.execute('ALTER TABLE plants ADD COLUMN description TEXT');
+      await db.execute('ALTER TABLE plants ADD COLUMN edible_parts TEXT');
+      await db.execute('ALTER TABLE plants ADD COLUMN propagation_methods TEXT');
     }
   }
 }

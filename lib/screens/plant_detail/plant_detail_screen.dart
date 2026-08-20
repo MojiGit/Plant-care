@@ -153,6 +153,17 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                     const SizedBox(height: 24),
                   ],
 
+                  // ── Info botánica ──
+                  if (_plant.family != null ||
+                      _plant.description != null ||
+                      _plant.edibleParts.isNotEmpty ||
+                      _plant.propagationMethods.isNotEmpty) ...[
+                    _SectionTitle('Información'),
+                    const SizedBox(height: 12),
+                    _InfoCard(plant: _plant),
+                    const SizedBox(height: 24),
+                  ],
+
                   // ── Historial ──
                   _SectionTitle('Historial de cuidados'),
                   const SizedBox(height: 12),
@@ -385,6 +396,73 @@ class _HistoryRow extends StatelessWidget {
               style: GoogleFonts.figtree(fontSize: 12, color: AppTheme.muted)),
         ],
       ),
+    );
+  }
+}
+
+class _InfoCard extends StatelessWidget {
+  final Plant plant;
+  const _InfoCard({required this.plant});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE0D8CC)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (plant.family != null) ...[
+            _InfoRow(label: 'Familia', value: plant.family!),
+            const SizedBox(height: 10),
+          ],
+          if (plant.description != null) ...[
+            Text('Descripción',
+                style: GoogleFonts.figtree(
+                    fontSize: 12, color: AppTheme.muted, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(plant.description!,
+                style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.dark, height: 1.5)),
+            const SizedBox(height: 10),
+          ],
+          if (plant.edibleParts.isNotEmpty) ...[
+            _InfoRow(label: 'Partes comestibles', value: plant.edibleParts.join(', ')),
+            const SizedBox(height: 10),
+          ],
+          if (plant.propagationMethods.isNotEmpty)
+            _InfoRow(label: 'Propagación', value: plant.propagationMethods.join(', ')),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _InfoRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 110,
+          child: Text(label,
+              style: GoogleFonts.figtree(
+                  fontSize: 12, color: AppTheme.muted, fontWeight: FontWeight.w600)),
+        ),
+        Expanded(
+          child: Text(value,
+              style: GoogleFonts.figtree(fontSize: 13, color: AppTheme.dark)),
+        ),
+      ],
     );
   }
 }

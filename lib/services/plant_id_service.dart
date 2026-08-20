@@ -4,9 +4,37 @@ import 'package:dio/dio.dart';
 import '../config/secrets.dart';
 import '../data/models/plant_result.dart';
 
-// Convierte recursivamente Map<dynamic,dynamic> a Map<String,dynamic>
 Map<String, dynamic> _asMap(dynamic value) =>
     Map<String, dynamic>.from(value as Map);
+
+const _details = 'watering,description,edible_parts,propagation_methods,taxonomy';
+
+PlantResult _parseDetails(String species, Map<String, dynamic> details) {
+  final watering = details['watering'] != null ? _asMap(details['watering']) : <String, dynamic>{};
+  final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
+
+  final taxonomy = details['taxonomy'] != null ? _asMap(details['taxonomy']) : <String, dynamic>{};
+  final family = taxonomy['family'] as String?;
+
+  final description = (details['description'] as Map?)?['value'] as String?
+      ?? details['description'] as String?;
+
+  final edibleParts = (details['edible_parts'] as List?)
+      ?.map((e) => e.toString()).toList() ?? [];
+
+  final propagationMethods = (details['propagation_methods'] as List?)
+      ?.map((e) => e.toString()).toList() ?? [];
+
+  return PlantResult(
+    species: species,
+    wateringMax: wateringMax,
+    isToxic: false,
+    family: family,
+    description: description,
+    edibleParts: edibleParts,
+    propagationMethods: propagationMethods,
+  );
+}
 
 class PlantIdService {
   static final _dio = Dio(BaseOptions(
@@ -16,7 +44,6 @@ class PlantIdService {
     receiveTimeout: const Duration(seconds: 15),
   ));
 
-  /// Identifica una planta a partir de una imagen local.
   static Future<PlantResult> identify(String imagePath) async {
     try {
       final bytes = await File(imagePath).readAsBytes();
@@ -24,7 +51,7 @@ class PlantIdService {
 
       final response = await _dio.post(
         '/api/v3/identification',
-        queryParameters: {'details': 'common_names,watering'},
+        queryParameters: {'details': _details},
         data: {'images': [base64Image], 'similar_images': false},
       );
 
@@ -34,30 +61,14 @@ class PlantIdService {
 
       final top = _asMap(suggestions.first);
       final details = top['details'] != null ? _asMap(top['details']) : <String, dynamic>{};
-
-      final commonNames = (details['common_names'] as List?) ?? [];
-      final commonName = commonNames.isNotEmpty
-          ? commonNames.first as String
-          : top['name'] as String;
-      final species = top['name'] as String;
-      final watering = details['watering'] != null ? _asMap(details['watering']) : <String, dynamic>{};
-      final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
-
-      return PlantResult(
-        commonName: commonName,
-        species: species,
-        wateringMax: wateringMax,
-        isToxic: false,
-      );
+      return _parseDetails(top['name'] as String, details);
     } on DioException catch (e) {
       _throwTyped(e);
     }
   }
 
-  /// Busca una planta por nombre en el knowledge base de Plant.id (2 pasos).
   static Future<PlantResult> search(String name) async {
     try {
-      // Paso 1: buscar por nombre → obtener access_token
       final searchResponse = await _dio.get(
         '/api/v3/kb/plants/name_search',
         queryParameters: {'q': name.trim(), 'lang': 'es'},
@@ -70,30 +81,15 @@ class PlantIdService {
       final accessToken = entity['access_token'] as String;
       final species = entity['entity_name'] as String? ?? name;
 
-      // Paso 2: pedir detalles con el access_token
       final detailResponse = await _dio.get(
         '/api/v3/kb/plants/$accessToken',
-        queryParameters: {'details': 'common_names,watering'},
+        queryParameters: {'details': _details},
       );
 
       final details = detailResponse.data['details'] != null
           ? _asMap(detailResponse.data['details'])
           : <String, dynamic>{};
-      final commonNames = (details['common_names'] as List?) ?? [];
-      final commonName = commonNames.isNotEmpty
-          ? commonNames.first as String
-          : species;
-      final watering = details['watering'] != null
-          ? _asMap(details['watering'])
-          : <String, dynamic>{};
-      final wateringMax = (watering['max'] as num?)?.toInt() ?? 2;
-
-      return PlantResult(
-        commonName: commonName,
-        species: species,
-        wateringMax: wateringMax,
-        isToxic: false,
-      );
+      return _parseDetails(species, details);
     } on DioException catch (e) {
       _throwTyped(e);
     }

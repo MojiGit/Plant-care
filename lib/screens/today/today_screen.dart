@@ -248,7 +248,9 @@ class _TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final plantName = task['common_name'] as String? ?? 'Planta';
+    final nickname = task['nickname'] as String?;
+    final species  = task['species'] as String? ?? 'Planta';
+    final plantName = (nickname?.isNotEmpty == true) ? nickname! : species;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),

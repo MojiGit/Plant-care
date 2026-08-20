@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -44,12 +45,19 @@ class _AddPlantFlowState extends State<AddPlantFlow> {
     final now = DateTime.now();
     final wn = CarePlanEngine.waterNeedFromInt(result.wateringMax);
     final plant = Plant(
-      commonName: result.commonName,
       species: result.species,
       addedAt: now.toIso8601String(),
       lightNeed: _light!.name,
       soilType: _soil!.name,
       waterNeed: wn.name,
+      family: result.family,
+      description: result.description,
+      ediblePartsJson: result.edibleParts.isNotEmpty
+          ? jsonEncode(result.edibleParts)
+          : null,
+      propagationMethodsJson: result.propagationMethods.isNotEmpty
+          ? jsonEncode(result.propagationMethods)
+          : null,
       wateringIntervalDays: interval,
       isToxic: result.isToxic,
     );
@@ -366,7 +374,7 @@ class _ResultCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(result.commonName,
+                Text(result.species,
                     style: GoogleFonts.caprasimo(fontSize: 15, color: AppTheme.dark)),
                 Text(result.species,
                     style: GoogleFonts.figtree(
@@ -597,7 +605,7 @@ class _ConfirmStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(r.commonName,
+                Text(r.species,
                     style: GoogleFonts.caprasimo(fontSize: 20, color: AppTheme.dark)),
                 Text(r.species,
                     style: GoogleFonts.figtree(
