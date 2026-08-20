@@ -377,11 +377,17 @@ class _HistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = switch (taskType) {
-      'water'        => 'Regó la planta',
-      'identify'     => 'Planta identificada',
-      'check_ok'     => 'Tierra en buen estado',
-      'check_later'  => 'Revisión pospuesta',
-      _              => taskType,
+      'water'           => 'Regó la planta',
+      'identify'        => 'Planta identificada',
+      'check_ok'        => 'Tierra en buen estado',
+      'check_later'     => 'Revisión pospuesta',
+      'light_low'       => 'Movida a un rincón de poca luz',
+      'light_indirect'  => 'Reubicada con luz indirecta',
+      'light_direct'    => 'Puesta al sol directo',
+      'soil_draining'   => 'Tierra cambiada a sustrato drenante',
+      'soil_normal'     => 'Tierra cambiada a sustrato normal',
+      'soil_retaining'  => 'Tierra cambiada a sustrato retentivo',
+      _                 => taskType,
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),

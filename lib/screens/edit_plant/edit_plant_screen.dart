@@ -58,17 +58,22 @@ class _EditPlantScreenState extends State<EditPlantScreen> {
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
+    final id = widget.plant.id!;
     final intervalChanged = _days != widget.plant.wateringIntervalDays;
+    final lightChanged = _light.name != widget.plant.lightNeed;
+    final soilChanged  = _soil.name  != widget.plant.soilType;
+
     await _repo.updatePlant(
-      id: widget.plant.id!,
+      id: id,
       nicknameRaw: _nicknameCtrl.text,
       lightNeed: _light.name,
       soilType: _soil.name,
       wateringIntervalDays: _days,
     );
-    if (intervalChanged) {
-      await _repo.rescheduleAfterEdit(widget.plant.id!, _days);
-    }
+    if (intervalChanged) await _repo.rescheduleAfterEdit(id, _days);
+    if (lightChanged) await _repo.logCareTask(plantId: id, taskType: 'light_${_light.name}');
+    if (soilChanged)  await _repo.logCareTask(plantId: id, taskType: 'soil_${_soil.name}');
+
     if (mounted) Navigator.of(context).pop(true);
   }
 
