@@ -113,44 +113,11 @@ class _TodayScreenState extends State<TodayScreen> {
     );
   }
 
-  Future<void> _debugForceAllDue() async {
-    final plants = await _repo.getPlants();
-    for (final plant in plants) {
-      await _repo.setSchedule(
-        plantId: plant.id!,
-        taskType: 'water',
-        nextDueAt: DateTime.now().subtract(const Duration(days: 1)),
-      );
-    }
-    await _load();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        _loading
-            ? const Center(child: CircularProgressIndicator(color: AppTheme.sage))
-            : _dueTasks.isEmpty
-                ? _AllGoodState()
-                : _TaskList(
-                    tasks: _dueTasks,
-                    processing: _processing,
-                    onRespond: _respond,
-                  ),
-        // DEBUG — eliminar antes del release
-        Positioned(
-          bottom: 16,
-          right: 16,
-          child: FloatingActionButton.small(
-            backgroundColor: AppTheme.terracotta,
-            tooltip: 'Debug: forzar revisiones vencidas',
-            onPressed: _debugForceAllDue,
-            child: const Icon(Icons.bug_report_outlined, color: AppTheme.cream),
-          ),
-        ),
-      ],
-    );
+    if (_loading) return const Center(child: CircularProgressIndicator(color: AppTheme.sage));
+    if (_dueTasks.isEmpty) return _AllGoodState();
+    return _TaskList(tasks: _dueTasks, processing: _processing, onRespond: _respond);
   }
 }
 

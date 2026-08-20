@@ -391,12 +391,9 @@ class _ResultCard extends StatelessWidget {
               children: [
                 Text(result.species,
                     style: GoogleFonts.caprasimo(fontSize: 15, color: AppTheme.dark)),
-                Text(result.species,
-                    style: GoogleFonts.figtree(
-                      fontSize: 12,
-                      color: AppTheme.muted,
-                      fontStyle: FontStyle.italic,
-                    )),
+                if (result.family != null)
+                  Text(result.family!,
+                      style: GoogleFonts.figtree(fontSize: 12, color: AppTheme.muted)),
               ],
             ),
           ),
@@ -622,7 +619,8 @@ class _ConfirmStep extends StatelessWidget {
               children: [
                 Text(r.species,
                     style: GoogleFonts.caprasimo(fontSize: 20, color: AppTheme.dark)),
-                Text(r.species,
+                if (r.family != null)
+                Text(r.family!,
                     style: GoogleFonts.figtree(
                       fontSize: 13,
                       color: AppTheme.muted,
