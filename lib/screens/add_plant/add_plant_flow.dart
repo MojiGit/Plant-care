@@ -63,6 +63,7 @@ class _AddPlantFlowState extends State<AddPlantFlow> {
     );
     final repo = PlantRepository();
     final plantId = await repo.addPlant(plant);
+    await repo.logCareTask(plantId: plantId, taskType: 'identify');
     await repo.setSchedule(
       plantId: plantId,
       taskType: 'water',
