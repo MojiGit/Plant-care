@@ -8,7 +8,7 @@ import '../data/models/plant_result.dart';
 Map<String, dynamic> _asMap(dynamic value) =>
     Map<String, dynamic>.from(value as Map);
 
-const _details = 'watering,description,edible_parts,propagation_methods,taxonomy';
+const _details = 'watering,description,edible_parts,propagation_methods,taxonomy,toxicity';
 
 PlantResult _parseDetails(String species, Map<String, dynamic> details) {
   final watering = details['watering'] != null ? _asMap(details['watering']) : <String, dynamic>{};
@@ -26,10 +26,15 @@ PlantResult _parseDetails(String species, Map<String, dynamic> details) {
   final propagationMethods = (details['propagation_methods'] as List?)
       ?.map((e) => e.toString()).toList() ?? [];
 
+  final toxicity = details['toxicity'];
+  final isToxic = toxicity != null &&
+      toxicity.toString().trim().isNotEmpty &&
+      toxicity.toString().toLowerCase() != 'none';
+
   return PlantResult(
     species: species,
     wateringMax: wateringMax,
-    isToxic: false,
+    isToxic: isToxic,
     family: family,
     description: description,
     edibleParts: edibleParts,
