@@ -196,12 +196,12 @@ class _PlantCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    plant.commonName,
+                    plant.displayName,
                     style: GoogleFonts.caprasimo(fontSize: 16, color: AppTheme.dark),
                   ),
-                  if (plant.species != plant.commonName)
+                  if (plant.displaySubtitle != null)
                     Text(
-                      plant.species,
+                      plant.displaySubtitle!,
                       style: GoogleFonts.figtree(
                         fontSize: 12,
                         color: AppTheme.muted,

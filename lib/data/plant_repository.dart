@@ -30,6 +30,16 @@ class PlantRepository {
     await db.delete('plants', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> updateNickname(int id, String? nickname) async {
+    final db = await _db;
+    await db.update(
+      'plants',
+      {'nickname': nickname?.trim().isEmpty == true ? null : nickname?.trim()},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   // ── Care log ─────────────────────────────────────────────────────────────
 
   Future<void> logCareTask({

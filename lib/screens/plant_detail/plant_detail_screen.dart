@@ -17,10 +17,12 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   List<Map<String, dynamic>> _history = [];
   List<Map<String, dynamic>> _schedule = [];
   bool _loading = true;
+  late String? _nickname;
 
   @override
   void initState() {
     super.initState();
+    _nickname = widget.plant.nickname;
     _load();
   }
 
@@ -33,6 +35,51 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
         _schedule = schedule;
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _editNickname() async {
+    final controller = TextEditingController(text: _nickname ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cream,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Nombre de la planta',
+            style: GoogleFonts.caprasimo(fontSize: 18, color: AppTheme.dark)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          style: GoogleFonts.figtree(fontSize: 15, color: AppTheme.dark),
+          decoration: InputDecoration(
+            hintText: 'Ej. Mi Monstera',
+            hintStyle: GoogleFonts.figtree(color: AppTheme.muted),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: AppTheme.sage.withAlpha(120)),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: AppTheme.sage, width: 2),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(null),
+            child: Text('Cancelar',
+                style: GoogleFonts.figtree(color: AppTheme.muted, fontWeight: FontWeight.w600)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: Text('Guardar',
+                style: GoogleFonts.figtree(color: AppTheme.sage, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (result != null && mounted) {
+      final trimmed = result.trim().isEmpty ? null : result.trim();
+      await _repo.updateNickname(widget.plant.id!, trimmed);
+      setState(() => _nickname = trimmed);
     }
   }
 
@@ -96,8 +143,13 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     final plant = widget.plant;
     return Scaffold(
       appBar: AppBar(
-        title: Text(plant.commonName),
+        title: Text(_nickname?.isNotEmpty == true ? _nickname! : plant.species),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Editar nombre',
+            onPressed: _editNickname,
+          ),
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded),
             tooltip: 'Eliminar planta',
@@ -114,7 +166,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Header ──
-                  _PlantHeader(plant: plant, lightLabel: _lightLabel),
+                  _PlantHeader(plant: plant, lightLabel: _lightLabel, nickname: _nickname),
                   const SizedBox(height: 24),
 
                   // ── Próximas revisiones ──
@@ -155,7 +207,8 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
 class _PlantHeader extends StatelessWidget {
   final Plant plant;
   final String lightLabel;
-  const _PlantHeader({required this.plant, required this.lightLabel});
+  final String? nickname;
+  const _PlantHeader({required this.plant, required this.lightLabel, this.nickname});
 
   @override
   Widget build(BuildContext context) {
@@ -192,9 +245,10 @@ class _PlantHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(plant.commonName,
+                    Text(
+                        nickname?.isNotEmpty == true ? nickname! : plant.species,
                         style: GoogleFonts.caprasimo(fontSize: 20, color: AppTheme.dark)),
-                    if (plant.species != plant.commonName)
+                    if (nickname?.isNotEmpty == true)
                       Text(plant.species,
                           style: GoogleFonts.figtree(
                             fontSize: 13,

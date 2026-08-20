@@ -13,8 +13,9 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'monstera.db'),
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -24,6 +25,7 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         common_name TEXT NOT NULL,
         species TEXT NOT NULL,
+        nickname TEXT,
         photo_path TEXT,
         added_at TEXT NOT NULL,
         light_need TEXT NOT NULL,
@@ -63,5 +65,11 @@ class AppDatabase {
     ''');
 
     await db.insert('user_stats', {'id': 1, 'points': 0, 'streak_days': 0});
+  }
+
+  static Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE plants ADD COLUMN nickname TEXT');
+    }
   }
 }
