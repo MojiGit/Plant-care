@@ -165,6 +165,25 @@ class PlantRepository {
     );
   }
 
+  Future<void> rescheduleAfterEdit(int plantId, int newIntervalDays) async {
+    final db = await _db;
+    final lastCare = await db.query(
+      'care_log',
+      where: 'plant_id = ?',
+      whereArgs: [plantId],
+      orderBy: 'done_at DESC',
+      limit: 1,
+    );
+    final base = lastCare.isNotEmpty
+        ? DateTime.parse(lastCare.first['done_at'] as String).toLocal()
+        : DateTime.now();
+    await setSchedule(
+      plantId: plantId,
+      taskType: 'water',
+      nextDueAt: base.add(Duration(days: newIntervalDays)),
+    );
+  }
+
   Future<void> updateUserNickname(String? nickname) async {
     final db = await _db;
     await db.update(

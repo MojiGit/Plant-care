@@ -58,6 +58,7 @@ class _EditPlantScreenState extends State<EditPlantScreen> {
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
+    final intervalChanged = _days != widget.plant.wateringIntervalDays;
     await _repo.updatePlant(
       id: widget.plant.id!,
       nicknameRaw: _nicknameCtrl.text,
@@ -65,6 +66,9 @@ class _EditPlantScreenState extends State<EditPlantScreen> {
       soilType: _soil.name,
       wateringIntervalDays: _days,
     );
+    if (intervalChanged) {
+      await _repo.rescheduleAfterEdit(widget.plant.id!, _days);
+    }
     if (mounted) Navigator.of(context).pop(true);
   }
 
