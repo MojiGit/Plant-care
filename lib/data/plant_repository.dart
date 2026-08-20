@@ -164,4 +164,13 @@ class PlantRepository {
       where: 'id = 1',
     );
   }
+
+  Future<void> updateUserNickname(String? nickname) async {
+    final db = await _db;
+    await db.update(
+      'user_stats',
+      {'nickname': nickname?.trim().isEmpty == true ? null : nickname?.trim()},
+      where: 'id = 1',
+    );
+  }
 }
