@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ? const Center(child: CircularProgressIndicator(color: AppTheme.sage))
               : _plants.isEmpty
                   ? _EmptyState(onAddPlant: _openAddPlant)
-                  : _PlantList(plants: _plants, nextDue: _nextDue, onAddPlant: _openAddPlant),
+                  : _PlantList(plants: _plants, nextDue: _nextDue, onAddPlant: _openAddPlant, onRefresh: _loadPlants),
       floatingActionButton: (_navIndex != 0 || _plants.isEmpty)
           ? null
           : FloatingActionButton(
@@ -92,7 +92,8 @@ class _PlantList extends StatelessWidget {
   final List<Plant> plants;
   final Map<int, DateTime> nextDue;
   final VoidCallback onAddPlant;
-  const _PlantList({required this.plants, required this.nextDue, required this.onAddPlant});
+  final VoidCallback onRefresh;
+  const _PlantList({required this.plants, required this.nextDue, required this.onAddPlant, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +112,11 @@ class _PlantList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverList(
             delegate: SliverChildBuilderDelegate(
-              (context, i) => _PlantCard(plant: plants[i], nextDueAt: nextDue[plants[i].id]),
+              (context, i) => _PlantCard(
+                    plant: plants[i],
+                    nextDueAt: nextDue[plants[i].id],
+                    onNeedRefresh: onRefresh,
+                  ),
               childCount: plants.length,
             ),
           ),
@@ -125,7 +130,8 @@ class _PlantList extends StatelessWidget {
 class _PlantCard extends StatelessWidget {
   final Plant plant;
   final DateTime? nextDueAt;
-  const _PlantCard({required this.plant, this.nextDueAt});
+  final VoidCallback onNeedRefresh;
+  const _PlantCard({required this.plant, this.nextDueAt, required this.onNeedRefresh});
 
   String get _lightLabel => switch (plant.lightNeed) {
         'low'    => 'Poca luz',
@@ -148,9 +154,9 @@ class _PlantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => PlantDetailScreen(plant: plant)),
-      ),
+      onTap: () => Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => PlantDetailScreen(plant: plant)))
+          .then((_) => onNeedRefresh()),
       child: _buildCard(),
     );
   }

@@ -59,11 +59,53 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     return 'En $diff días';
   }
 
+  Future<void> _confirmDelete() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.cream,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Eliminar planta',
+            style: GoogleFonts.caprasimo(fontSize: 18, color: AppTheme.dark)),
+        content: Text(
+          'Una vez eliminada, se perderá todo el historial y los registros de cuidado de esta planta. Esta acción no se puede deshacer.',
+          style: GoogleFonts.figtree(fontSize: 14, color: AppTheme.muted, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('Cancelar',
+                style: GoogleFonts.figtree(color: AppTheme.muted, fontWeight: FontWeight.w600)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('Eliminar',
+                style: GoogleFonts.figtree(color: AppTheme.terracotta, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await _repo.deletePlant(widget.plant.id!);
+      if (mounted) Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final plant = widget.plant;
     return Scaffold(
-      appBar: AppBar(title: Text(plant.commonName)),
+      appBar: AppBar(
+        title: Text(plant.commonName),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline_rounded),
+            tooltip: 'Eliminar planta',
+            color: AppTheme.terracotta,
+            onPressed: _confirmDelete,
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.sage))
           : SingleChildScrollView(
