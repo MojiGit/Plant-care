@@ -3,6 +3,8 @@ class Plant {
   final String commonName;
   final String species;
   final String? nickname;
+  final String soilType;
+  final String waterNeed;
   final String? photoPath;
   final String addedAt;
   final String lightNeed;
@@ -14,6 +16,8 @@ class Plant {
     required this.commonName,
     required this.species,
     this.nickname,
+    this.soilType = 'normal',
+    this.waterNeed = 'moist',
     this.photoPath,
     required this.addedAt,
     required this.lightNeed,
@@ -29,6 +33,8 @@ class Plant {
         'common_name': commonName,
         'species': species,
         'nickname': nickname,
+        'soil_type': soilType,
+        'water_need': waterNeed,
         'photo_path': photoPath,
         'added_at': addedAt,
         'light_need': lightNeed,
@@ -41,6 +47,8 @@ class Plant {
         commonName: map['common_name'] as String,
         species: map['species'] as String,
         nickname: map['nickname'] as String?,
+        soilType: (map['soil_type'] as String?) ?? 'normal',
+        waterNeed: (map['water_need'] as String?) ?? 'moist',
         photoPath: map['photo_path'] as String?,
         addedAt: map['added_at'] as String,
         lightNeed: map['light_need'] as String,

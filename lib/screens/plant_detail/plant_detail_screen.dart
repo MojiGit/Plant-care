@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/plant.dart';
 import '../../data/plant_repository.dart';
 import '../../ui/app_theme.dart';
+import '../edit_plant/edit_plant_screen.dart';
 
 class PlantDetailScreen extends StatefulWidget {
   final Plant plant;
@@ -18,19 +19,23 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
   List<Map<String, dynamic>> _schedule = [];
   bool _loading = true;
   late String? _nickname;
+  late Plant _plant;
 
   @override
   void initState() {
     super.initState();
+    _plant = widget.plant;
     _nickname = widget.plant.nickname;
     _load();
   }
 
   Future<void> _load() async {
-    final history = await _repo.getCareHistory(widget.plant.id!);
-    final schedule = await _repo.getPlantSchedule(widget.plant.id!);
+    final plantData = await _repo.getPlant(_plant.id!);
+    final history = await _repo.getCareHistory(_plant.id!);
+    final schedule = await _repo.getPlantSchedule(_plant.id!);
     if (mounted) {
       setState(() {
+        if (plantData != null) { _plant = plantData; _nickname = plantData.nickname; }
         _history = history;
         _schedule = schedule;
         _loading = false;
@@ -38,52 +43,15 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     }
   }
 
-  Future<void> _editNickname() async {
-    final controller = TextEditingController(text: _nickname ?? '');
-    final result = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cream,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Nombre de la planta',
-            style: GoogleFonts.caprasimo(fontSize: 18, color: AppTheme.dark)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          style: GoogleFonts.figtree(fontSize: 15, color: AppTheme.dark),
-          decoration: InputDecoration(
-            hintText: 'Ej. Mi Monstera',
-            hintStyle: GoogleFonts.figtree(color: AppTheme.muted),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: AppTheme.sage.withAlpha(120)),
-            ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: AppTheme.sage, width: 2),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(null),
-            child: Text('Cancelar',
-                style: GoogleFonts.figtree(color: AppTheme.muted, fontWeight: FontWeight.w600)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(controller.text),
-            child: Text('Guardar',
-                style: GoogleFonts.figtree(color: AppTheme.sage, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
+  Future<void> _openEdit() async {
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => EditPlantScreen(plant: _plant)),
     );
-    if (result != null && mounted) {
-      final trimmed = result.trim().isEmpty ? null : result.trim();
-      await _repo.updateNickname(widget.plant.id!, trimmed);
-      setState(() => _nickname = trimmed);
-    }
+    if (changed == true && mounted) _load();
   }
 
-  String get _lightLabel => switch (widget.plant.lightNeed) {
+
+  String get _lightLabel => switch (_plant.lightNeed) {
         'low'    => 'Poca luz',
         'direct' => 'Luz directa',
         _        => 'Luz indirecta',
@@ -133,22 +101,21 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
       ),
     );
     if (confirmed == true && mounted) {
-      await _repo.deletePlant(widget.plant.id!);
+      await _repo.deletePlant(_plant.id!);
       if (mounted) Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final plant = widget.plant;
     return Scaffold(
       appBar: AppBar(
-        title: Text(_nickname?.isNotEmpty == true ? _nickname! : plant.species),
+        title: Text(_nickname?.isNotEmpty == true ? _nickname! : _plant.species),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Editar nombre',
-            onPressed: _editNickname,
+            tooltip: 'Editar planta',
+            onPressed: _openEdit,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded),
@@ -166,7 +133,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Header ──
-                  _PlantHeader(plant: plant, lightLabel: _lightLabel, nickname: _nickname),
+                  _PlantHeader(plant: _plant, lightLabel: _lightLabel, nickname: _nickname),
                   const SizedBox(height: 24),
 
                   // ── Próximas revisiones ──

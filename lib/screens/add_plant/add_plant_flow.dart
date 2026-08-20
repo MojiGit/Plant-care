@@ -42,11 +42,14 @@ class _AddPlantFlowState extends State<AddPlantFlow> {
       soil: _soil!,
     );
     final now = DateTime.now();
+    final wn = CarePlanEngine.waterNeedFromInt(result.wateringMax);
     final plant = Plant(
       commonName: result.commonName,
       species: result.species,
       addedAt: now.toIso8601String(),
       lightNeed: _light!.name,
+      soilType: _soil!.name,
+      waterNeed: wn.name,
       wateringIntervalDays: interval,
       isToxic: result.isToxic,
     );

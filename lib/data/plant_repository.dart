@@ -30,6 +30,27 @@ class PlantRepository {
     await db.delete('plants', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> updatePlant({
+    required int id,
+    required String nicknameRaw,
+    required String lightNeed,
+    required String soilType,
+    required int wateringIntervalDays,
+  }) async {
+    final db = await _db;
+    await db.update(
+      'plants',
+      {
+        'nickname': nicknameRaw.trim().isEmpty ? null : nicknameRaw.trim(),
+        'light_need': lightNeed,
+        'soil_type': soilType,
+        'watering_interval_days': wateringIntervalDays,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<void> updateNickname(int id, String? nickname) async {
     final db = await _db;
     await db.update(
