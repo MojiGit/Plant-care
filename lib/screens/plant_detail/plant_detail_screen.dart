@@ -154,15 +154,10 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
                   ],
 
                   // ── Info botánica ──
-                  if (_plant.family != null ||
-                      _plant.description != null ||
-                      _plant.edibleParts.isNotEmpty ||
-                      _plant.propagationMethods.isNotEmpty) ...[
-                    _SectionTitle('Información'),
-                    const SizedBox(height: 12),
-                    _InfoCard(plant: _plant),
-                    const SizedBox(height: 24),
-                  ],
+                  _SectionTitle('Información'),
+                  const SizedBox(height: 12),
+                  _InfoCard(plant: _plant),
+                  const SizedBox(height: 24),
 
                   // ── Historial ──
                   _SectionTitle('Historial de cuidados'),
@@ -427,6 +422,15 @@ class _InfoCard extends StatelessWidget {
             _InfoRow(label: 'Familia', value: plant.family!),
             const SizedBox(height: 14),
           ],
+          _InfoRow(
+            label: 'Necesidad de agua',
+            value: switch (plant.waterNeed) {
+              'dry'  => 'Escasa — tolera sequía',
+              'wet'  => 'Frecuente — no dejar secar',
+              _      => 'Moderada',
+            },
+          ),
+          const SizedBox(height: 14),
           if (plant.description != null) ...[
             Text('Descripción',
                 style: GoogleFonts.figtree(
