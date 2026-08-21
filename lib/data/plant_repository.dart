@@ -172,8 +172,8 @@ class PlantRepository {
     final db = await _db;
     final lastCare = await db.query(
       'care_log',
-      where: 'plant_id = ?',
-      whereArgs: [plantId],
+      where: 'plant_id = ? AND task_type = ?',
+      whereArgs: [plantId, 'water'],
       orderBy: 'done_at DESC',
       limit: 1,
     );
