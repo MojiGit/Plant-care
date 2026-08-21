@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/plant_repository.dart';
 import '../../domain/gamification_engine.dart';
+import '../../services/notification_service.dart';
 import '../../ui/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -154,6 +156,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _LevelRow(name: 'Gardener',       pts: 150,  current: level == Level.gardener),
           _LevelRow(name: 'Botanist',       pts: 500,  current: level == Level.botanist),
           _LevelRow(name: 'Master Botanist',pts: 1500, current: level == Level.masterBotanist),
+
+          if (kDebugMode) ...[
+            const SizedBox(height: 32),
+            OutlinedButton.icon(
+              onPressed: () => NotificationService.showTest(),
+              icon: const Icon(Icons.notifications_outlined, size: 18),
+              label: const Text('Test notificación'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.muted,
+                side: const BorderSide(color: Color(0xFFE0D8CC)),
+                minimumSize: const Size.fromHeight(44),
+              ),
+            ),
+          ],
         ],
       ),
     );

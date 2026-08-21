@@ -97,4 +97,20 @@ class NotificationService {
   }
 
   static Future<void> cancelAll() async => _plugin.cancelAll();
+
+  static Future<void> showTest() async {
+    await _plugin.show(
+      99,
+      'Prueba de notificación',
+      'Las notificaciones funcionan correctamente.',
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channelId,
+          'Cuidado de plantas',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  }
 }
