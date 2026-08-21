@@ -1,5 +1,4 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import '../data/plant_repository.dart';
@@ -11,8 +10,6 @@ class NotificationService {
 
   static Future<void> init() async {
     tz.initializeTimeZones();
-    final timezoneName = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timezoneName));
 
     await _plugin.initialize(
       const InitializationSettings(
@@ -73,12 +70,18 @@ class NotificationService {
       body = 'Abre la app para ver el plan de hoy.';
     }
 
+    // Convert local DateTime to UTC for scheduling — fires at the correct
+    // absolute moment regardless of timezone offset.
+    final utc = earliest.toUtc();
+    final scheduledAt = tz.TZDateTime.utc(
+      utc.year, utc.month, utc.day, utc.hour, utc.minute,
+    );
+
     await _plugin.zonedSchedule(
       _notifId,
       title,
       body,
-      tz.TZDateTime.fromMillisecondsSinceEpoch(
-          tz.local, earliest.millisecondsSinceEpoch),
+      scheduledAt,
       NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
