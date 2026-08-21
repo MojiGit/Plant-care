@@ -158,8 +158,11 @@ class _ScanStepState extends State<_ScanStep> {
     try {
       final result = await PlantIdService.identify(image.path);
       if (mounted) widget.onIdentified(result);
-    } catch (_) {
-      setState(() => _error = 'No pudimos identificar la planta. Intenta de nuevo.');
+    } catch (e) {
+      final msg = e.toString();
+      setState(() => _error = msg.contains('no_details')
+          ? 'No encontramos información de esta planta. Intenta con otra foto o búscala por nombre.'
+          : 'No pudimos identificar la planta. Intenta de nuevo.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }

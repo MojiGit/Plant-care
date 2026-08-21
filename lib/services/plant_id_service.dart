@@ -67,18 +67,15 @@ class PlantIdService {
       final species = top['name'] as String;
       final accessToken = top['access_token'] as String?;
 
-      if (accessToken != null) {
-        final detailResponse = await _dio.get(
-          '/api/v3/kb/plants/$accessToken',
-          queryParameters: {'details': _details},
-        );
-        final details = detailResponse.data['details'] != null
-            ? _asMap(detailResponse.data['details'])
-            : <String, dynamic>{};
-        return _parseDetails(species, details);
-      }
-
-      return _parseDetails(species, <String, dynamic>{});
+      if (accessToken == null) throw Exception('no_details');
+      final detailResponse = await _dio.get(
+        '/api/v3/kb/plants/$accessToken',
+        queryParameters: {'details': _details},
+      );
+      final details = detailResponse.data['details'] != null
+          ? _asMap(detailResponse.data['details'])
+          : _asMap(detailResponse.data);
+      return _parseDetails(species, details);
     } on DioException catch (e) {
       _throwTyped(e);
     }
