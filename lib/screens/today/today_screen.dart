@@ -4,6 +4,7 @@ import '../../data/models/plant.dart';
 import '../../data/plant_repository.dart';
 import '../../domain/care_plan_engine.dart';
 import '../../domain/gamification_engine.dart';
+import '../../services/notification_service.dart';
 import '../../ui/app_theme.dart';
 
 class TodayScreen extends StatefulWidget {
@@ -50,6 +51,7 @@ class _TodayScreenState extends State<TodayScreen> {
       taskType: task['task_type'] as String,
       nextDueAt: nextDue,
     );
+    await NotificationService.reschedule(_repo);
 
     // Registrar control en historial siempre
     final logType = switch (result) {

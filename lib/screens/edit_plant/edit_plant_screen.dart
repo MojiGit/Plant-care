@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/plant.dart';
 import '../../data/plant_repository.dart';
 import '../../domain/care_plan_engine.dart';
+import '../../services/notification_service.dart';
 import '../../ui/app_theme.dart';
 
 class EditPlantScreen extends StatefulWidget {
@@ -73,6 +74,7 @@ class _EditPlantScreenState extends State<EditPlantScreen> {
     if (intervalChanged) await _repo.rescheduleAfterEdit(id, _days);
     if (lightChanged) await _repo.logCareTask(plantId: id, taskType: 'light_${_light.name}');
     if (soilChanged)  await _repo.logCareTask(plantId: id, taskType: 'soil_${_soil.name}');
+    if (intervalChanged) await NotificationService.reschedule(_repo);
 
     if (mounted) Navigator.of(context).pop(true);
   }

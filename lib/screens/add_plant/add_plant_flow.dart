@@ -7,6 +7,7 @@ import '../../data/models/plant_result.dart';
 import '../../data/plant_repository.dart';
 import '../../domain/care_plan_engine.dart';
 import '../../domain/gamification_engine.dart';
+import '../../services/notification_service.dart';
 import '../../services/plant_id_service.dart';
 import '../../ui/app_theme.dart';
 
@@ -83,6 +84,7 @@ class _AddPlantFlowState extends State<AddPlantFlow> {
       taskType: 'water',
       nextDueAt: now.add(Duration(days: interval)),
     );
+    await NotificationService.reschedule(repo);
 
     if (mounted) Navigator.of(context).pop();
   }

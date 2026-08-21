@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/plant.dart';
 import '../../data/plant_repository.dart';
+import '../../services/notification_service.dart';
 import '../../ui/app_theme.dart';
 import '../edit_plant/edit_plant_screen.dart';
 
@@ -106,6 +107,7 @@ class _PlantDetailScreenState extends State<PlantDetailScreen> {
     );
     if (confirmed == true && mounted) {
       await _repo.deletePlant(_plant.id!);
+      await NotificationService.reschedule(_repo);
       if (mounted) Navigator.of(context).pop();
     }
   }

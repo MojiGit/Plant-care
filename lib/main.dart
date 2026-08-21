@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'ui/app_theme.dart';
 import 'screens/home/home_screen.dart';
+import 'services/notification_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
   runApp(const MonsteraApp());
 }
 
