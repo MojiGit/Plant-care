@@ -145,7 +145,10 @@ class PlantRepository {
   Future<Map<String, dynamic>> getUserStats() async {
     final db = await _db;
     final rows = await db.query('user_stats', where: 'id = 1');
-    return rows.first;
+    if (rows.isNotEmpty) return rows.first;
+    // Safety: row should always exist after onCreate, but recover gracefully
+    await db.insert('user_stats', {'id': 1, 'points': 0, 'streak_days': 0});
+    return {'id': 1, 'nickname': null, 'points': 0, 'streak_days': 0, 'last_active_date': null};
   }
 
   Future<void> updateUserStats({
